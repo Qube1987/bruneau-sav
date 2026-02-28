@@ -267,510 +267,508 @@ export const SavForm: React.FC<SavFormProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center p-4 z-50 overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] my-8 overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-2xl">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center p-0 sm:p-4 z-50">
+      <div className="bg-white w-full h-full sm:h-auto sm:max-w-2xl sm:rounded-2xl shadow-xl flex flex-col">
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-4 sm:px-6 py-4 sm:rounded-t-2xl z-10 shrink-0">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 truncate pr-4">
               {request ? 'Modifier la demande SAV' : 'Nouvelle demande SAV'}
             </h2>
             <button
               onClick={onCancel}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors shrink-0"
             >
               <X className="h-5 w-5 text-gray-500" />
             </button>
           </div>
         </div>
 
-        {/* Extrabat Client Search - Only for new requests */}
-        {!request && (
-          <div className="px-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Recherche client Extrabat
-            </label>
-            <ClientSearch onClientSelect={handleClientSelect} />
-            <p className="text-xs text-gray-500 mt-1">
-              Recherchez un client existant dans Extrabat pour pré-remplir les informations
-            </p>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="p-6 space-y-6">
-          {/* Priority Toggle */}
-          <div className={`p-4 rounded-lg border-2 ${isUrgent ? 'border-blue-200 bg-blue-50' : 'border-gray-200 bg-gray-50'}`}>
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                className="rounded border-gray-300 text-blue-500 focus:ring-blue-500 h-5 w-5"
-                {...register('urgent')}
-              />
-              <div className="ml-3 flex items-center">
-                <AlertTriangle className={`h-5 w-5 mr-2 ${isUrgent ? 'text-blue-600' : 'text-gray-400'}`} />
-                <span className={`font-medium ${isUrgent ? 'text-blue-800' : 'text-gray-700'}`}>
-                  Demande prioritaire
-                </span>
-              </div>
-            </label>
-            {isUrgent && (
-              <p className="mt-2 text-sm text-blue-700">
-                Les demandes prioritaires apparaissent en tête de liste et sont marquées d'une étoile bleue.
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+          {/* Extrabat Client Search - Only for new requests */}
+          {!request && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Recherche client Extrabat
+              </label>
+              <ClientSearch onClientSelect={handleClientSelect} />
+              <p className="text-xs text-gray-500 mt-1">
+                Recherchez un client existant dans Extrabat pour pré-remplir les informations
               </p>
-            )}
-          </div>
+            </div>
+          )}
 
-          {/* Quick/Long Intervention Indicators */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Quick Intervention */}
-            <div className={`p-4 rounded-lg border-2 ${isQuickIntervention ? 'border-blue-200 bg-blue-50' : 'border-gray-200 bg-gray-50'}`}>
+          <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+            {/* Priority Toggle */}
+            <div className={`p-4 rounded-lg border-2 ${isUrgent ? 'border-blue-200 bg-blue-50' : 'border-gray-200 bg-gray-50'}`}>
               <label className="flex items-center">
                 <input
                   type="checkbox"
                   className="rounded border-gray-300 text-blue-500 focus:ring-blue-500 h-5 w-5"
-                  {...register('is_quick_intervention')}
+                  {...register('urgent')}
                 />
                 <div className="ml-3 flex items-center">
-                  <Zap className={`h-5 w-5 mr-2 ${isQuickIntervention ? 'text-blue-600' : 'text-gray-400'}`} />
-                  <span className={`font-medium ${isQuickIntervention ? 'text-blue-800' : 'text-gray-700'}`}>
-                    Intervention rapide
+                  <AlertTriangle className={`h-5 w-5 mr-2 ${isUrgent ? 'text-blue-600' : 'text-gray-400'}`} />
+                  <span className={`font-medium ${isUrgent ? 'text-blue-800' : 'text-gray-700'}`}>
+                    Demande prioritaire
                   </span>
                 </div>
               </label>
-              {isQuickIntervention && (
+              {isUrgent && (
                 <p className="mt-2 text-sm text-blue-700">
-                  Indicateur visuel uniquement (n'affecte pas le classement).
+                  Les demandes prioritaires apparaissent en tête de liste et sont marquées d'une étoile bleue.
                 </p>
               )}
             </div>
 
-            {/* Long Intervention */}
-            <div className={`p-4 rounded-lg border-2 ${isLongIntervention ? 'border-purple-200 bg-purple-50' : 'border-gray-200 bg-gray-50'}`}>
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  className="rounded border-gray-300 text-purple-500 focus:ring-purple-500 h-5 w-5"
-                  {...register('is_long_intervention')}
-                />
-                <div className="ml-3 flex items-center">
-                  <Clock className={`h-5 w-5 mr-2 ${isLongIntervention ? 'text-purple-600' : 'text-gray-400'}`} />
-                  <span className={`font-medium ${isLongIntervention ? 'text-purple-800' : 'text-gray-700'}`}>
-                    Intervention longue
-                  </span>
-                </div>
-              </label>
-              {isLongIntervention && (
-                <p className="mt-2 text-sm text-purple-700">
-                  Indicateur visuel uniquement (n'affecte pas le classement).
-                </p>
-              )}
-            </div>
-          </div>
+            {/* Quick/Long Intervention Indicators */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Quick Intervention */}
+              <div className={`p-4 rounded-lg border-2 ${isQuickIntervention ? 'border-blue-200 bg-blue-50' : 'border-gray-200 bg-gray-50'}`}>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    className="rounded border-gray-300 text-blue-500 focus:ring-blue-500 h-5 w-5"
+                    {...register('is_quick_intervention')}
+                  />
+                  <div className="ml-3 flex items-center">
+                    <Zap className={`h-5 w-5 mr-2 ${isQuickIntervention ? 'text-blue-600' : 'text-gray-400'}`} />
+                    <span className={`font-medium ${isQuickIntervention ? 'text-blue-800' : 'text-gray-700'}`}>
+                      Intervention rapide
+                    </span>
+                  </div>
+                </label>
+                {isQuickIntervention && (
+                  <p className="mt-2 text-sm text-blue-700">
+                    Indicateur visuel uniquement (n'affecte pas le classement).
+                  </p>
+                )}
+              </div>
 
-          {/* Client Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Nom du client *
-              </label>
-              <input
-                type="text"
-                {...register('client_name')}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 transition-colors ${
-                  errors.client_name ? 'border-accent-300 focus:border-accent-500' : 'border-gray-300 focus:border-primary-500'
-                }`}
-                placeholder="Nom du client ou de la société"
-              />
-              {errors.client_name && (
-                <p className="mt-1 text-sm text-accent-600">{errors.client_name.message}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Site
-              </label>
-              <input
-                type="text"
-                {...register('site')}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                placeholder="Nom du site ou bâtiment"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                {...register('client_email')}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 transition-colors ${
-                  errors.client_email ? 'border-accent-300 focus:border-accent-500' : 'border-gray-300 focus:border-primary-500'
-                }`}
-                placeholder="email@example.com"
-              />
-              {errors.client_email && (
-                <p className="mt-1 text-sm text-accent-600">{errors.client_email.message}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Téléphone
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="tel"
-                  {...register('phone')}
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                  placeholder="+33123456789"
-                />
-                {phone && (
-                  <button
-                    type="button"
-                    onClick={handleSendTestSMS}
-                    disabled={sendingSMS}
-                    className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-                    title="Envoyer SMS de confirmation"
-                  >
-                    {sendingSMS ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
-                    ) : (
-                      <MessageSquare className="h-4 w-4" />
-                    )}
-                  </button>
+              {/* Long Intervention */}
+              <div className={`p-4 rounded-lg border-2 ${isLongIntervention ? 'border-purple-200 bg-purple-50' : 'border-gray-200 bg-gray-50'}`}>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    className="rounded border-gray-300 text-purple-500 focus:ring-purple-500 h-5 w-5"
+                    {...register('is_long_intervention')}
+                  />
+                  <div className="ml-3 flex items-center">
+                    <Clock className={`h-5 w-5 mr-2 ${isLongIntervention ? 'text-purple-600' : 'text-gray-400'}`} />
+                    <span className={`font-medium ${isLongIntervention ? 'text-purple-800' : 'text-gray-700'}`}>
+                      Intervention longue
+                    </span>
+                  </div>
+                </label>
+                {isLongIntervention && (
+                  <p className="mt-2 text-sm text-purple-700">
+                    Indicateur visuel uniquement (n'affecte pas le classement).
+                  </p>
                 )}
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Adresse complète
-              </label>
-              <input
-                type="text"
-                {...register('address')}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                placeholder="Adresse complète avec ville"
-              />
-            </div>
-          </div>
-
-          {/* System Information */}
-          <div className="border-t border-gray-200 pt-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Informations système</h3>
-
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Type de système *
-              </label>
-              <select
-                {...register('system_type')}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 transition-colors ${
-                  errors.system_type ? 'border-accent-300 focus:border-accent-500' : 'border-gray-300 focus:border-primary-500'
-                }`}
-              >
-                <option value="">Sélectionner un type</option>
-                {Object.entries(SYSTEM_TYPES).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-              {errors.system_type && (
-                <p className="mt-1 text-sm text-accent-600">{errors.system_type.message}</p>
-              )}
-            </div>
-
-            <BrandModelSelector
-              brandValue={systemBrand || ''}
-              modelValue={systemModel || ''}
-              onBrandChange={(value) => setValue('system_brand', value)}
-              onModelChange={(value) => setValue('system_model', value)}
-              brandError={errors.system_brand?.message}
-              modelError={errors.system_model?.message}
-            />
-          </div>
-
-          {/* Assignment */}
-          <div className="grid grid-cols-1 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Assigner à
-              </label>
-              <select
-                {...register('assigned_user_id')}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-              >
-                <option value="">Non assigné</option>
-                {users.map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.display_name || user.email}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Problem Description with AI */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <label className="block text-sm font-medium text-gray-700">
-                Description du problème *
-              </label>
-              {!problemDescValidated && (
-                <div className="flex items-center gap-2 text-sm text-purple-600">
-                  <Sparkles className="h-4 w-4" />
-                  <span>IA disponible</span>
-                </div>
-              )}
-            </div>
-
-            {!problemDescValidated ? (
-              <>
-                <textarea
-                  {...register('problem_desc')}
-                  rows={4}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 transition-colors resize-none ${
-                    errors.problem_desc ? 'border-accent-300 focus:border-accent-500' : 'border-gray-300 focus:border-primary-500'
-                  }`}
-                  placeholder="Décrivez le problème rencontré en détail..."
+            {/* Client Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nom du client *
+                </label>
+                <input
+                  type="text"
+                  {...register('client_name')}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 transition-colors ${errors.client_name ? 'border-accent-300 focus:border-accent-500' : 'border-gray-300 focus:border-primary-500'
+                    }`}
+                  placeholder="Nom du client ou de la société"
                 />
-                {errors.problem_desc && (
-                  <p className="mt-1 text-sm text-accent-600">{errors.problem_desc.message}</p>
+                {errors.client_name && (
+                  <p className="mt-1 text-sm text-accent-600">{errors.client_name.message}</p>
                 )}
+              </div>
 
-                {/* AI Reformulation Button */}
-                <button
-                  type="button"
-                  onClick={handleProblemDescReformulation}
-                  disabled={aiLoading || !problemDesc?.trim()}
-                  className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg text-sm"
-                >
-                  {aiLoading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
-                      <span>Reformulation en cours...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="h-4 w-4 mr-2" />
-                      <span>Reformuler avec l'IA</span>
-                    </>
-                  )}
-                </button>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Site
+                </label>
+                <input
+                  type="text"
+                  {...register('site')}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                  placeholder="Nom du site ou bâtiment"
+                />
+              </div>
 
-                {/* Reformulated Description */}
-                {problemDescReformule && problemDescReformule.trim().length > 0 && (
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-purple-700">
-                      Description reformulée (prévisualisation)
-                    </label>
-                    <textarea
-                      {...register('problem_desc_reformule')}
-                      rows={4}
-                      className="w-full px-4 py-3 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors resize-none bg-purple-50"
-                      placeholder="La description reformulée apparaîtra ici..."
-                    />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  {...register('client_email')}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 transition-colors ${errors.client_email ? 'border-accent-300 focus:border-accent-500' : 'border-gray-300 focus:border-primary-500'
+                    }`}
+                  placeholder="email@example.com"
+                />
+                {errors.client_email && (
+                  <p className="mt-1 text-sm text-accent-600">{errors.client_email.message}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Téléphone
+                </label>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="tel"
+                    {...register('phone')}
+                    className="w-full sm:flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                    placeholder="+33123456789"
+                  />
+                  {phone && (
                     <button
                       type="button"
-                      onClick={handleProblemDescValidation}
-                      className="btn-success"
+                      onClick={handleSendTestSMS}
+                      disabled={sendingSMS}
+                      className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                      title="Envoyer SMS de confirmation"
                     >
-                      <span>✓</span>
-                      <span>Valider la reformulation</span>
+                      {sendingSMS ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                      ) : (
+                        <MessageSquare className="h-4 w-4" />
+                      )}
                     </button>
-                  </div>
-                )}
-
-                {/* AI Messages */}
-                {aiError && (
-                  <p className="text-sm text-red-600 flex items-center">
-                    <AlertTriangle className="h-4 w-4 mr-1" />
-                    {aiError}
-                  </p>
-                )}
-                {problemDescAiMessage && (
-                  <p className="text-sm text-green-600 flex items-center">
-                    <span className="mr-1">✓</span>
-                    {problemDescAiMessage}
-                  </p>
-                )}
-              </>
-            ) : (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="block text-sm font-medium text-green-700">
-                    Description validée (officielle)
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setProblemDescValidated(false)}
-                    className="text-sm text-gray-600 hover:text-gray-800 underline"
-                  >
-                    Modifier
-                  </button>
+                  )}
                 </div>
-                <textarea
-                  {...register('problem_desc_reformule')}
-                  rows={4}
-                  className="w-full px-4 py-3 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors resize-none bg-green-50"
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Adresse complète
+                </label>
+                <input
+                  type="text"
+                  {...register('address')}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                  placeholder="Adresse complète avec ville"
                 />
-                <p className="text-xs text-green-600">
-                  Cette description sera utilisée comme version officielle
-                </p>
               </div>
-            )}
-          </div>
-
-          {/* AI Report Section */}
-          <div className="border-t border-gray-200 pt-6 space-y-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-purple-600" />
-                <h3 className="text-lg font-semibold text-gray-900">Rapport technique</h3>
-              </div>
-              {!rapportValidated && (
-                <div className="flex items-center gap-2 text-sm text-purple-600">
-                  <Sparkles className="h-4 w-4" />
-                  <span>IA disponible</span>
-                </div>
-              )}
             </div>
 
-            {!rapportValidated ? (
-              <>
-                {/* Rapport brut */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Rapport brut (dictée technicien)
-                  </label>
-                  <textarea
-                    {...register('rapport_brut')}
-                    rows={5}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors resize-none font-mono text-sm"
-                    placeholder="Saisie libre ou dictée vocale du rapport d'intervention..."
-                  />
-                  <p className="mt-1 text-xs text-gray-500">
-                    Ce rapport est conservé tel quel pour traçabilité
-                  </p>
-                </div>
+            {/* System Information */}
+            <div className="border-t border-gray-200 pt-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Informations système</h3>
 
-                {/* AI Button */}
-                <div>
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Type de système *
+                </label>
+                <select
+                  {...register('system_type')}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 transition-colors ${errors.system_type ? 'border-accent-300 focus:border-accent-500' : 'border-gray-300 focus:border-primary-500'
+                    }`}
+                >
+                  <option value="">Sélectionner un type</option>
+                  {Object.entries(SYSTEM_TYPES).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+                {errors.system_type && (
+                  <p className="mt-1 text-sm text-accent-600">{errors.system_type.message}</p>
+                )}
+              </div>
+
+              <BrandModelSelector
+                brandValue={systemBrand || ''}
+                modelValue={systemModel || ''}
+                onBrandChange={(value) => setValue('system_brand', value)}
+                onModelChange={(value) => setValue('system_model', value)}
+                brandError={errors.system_brand?.message}
+                modelError={errors.system_model?.message}
+              />
+            </div>
+
+            {/* Assignment */}
+            <div className="grid grid-cols-1 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Assigner à
+                </label>
+                <select
+                  {...register('assigned_user_id')}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                >
+                  <option value="">Non assigné</option>
+                  {users.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.display_name || user.email}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Problem Description with AI */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="block text-sm font-medium text-gray-700">
+                  Description du problème *
+                </label>
+                {!problemDescValidated && (
+                  <div className="flex items-center gap-2 text-sm text-purple-600">
+                    <Sparkles className="h-4 w-4" />
+                    <span>IA disponible</span>
+                  </div>
+                )}
+              </div>
+
+              {!problemDescValidated ? (
+                <>
+                  <textarea
+                    {...register('problem_desc')}
+                    rows={4}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 transition-colors resize-none ${errors.problem_desc ? 'border-accent-300 focus:border-accent-500' : 'border-gray-300 focus:border-primary-500'
+                      }`}
+                    placeholder="Décrivez le problème rencontré en détail..."
+                  />
+                  {errors.problem_desc && (
+                    <p className="mt-1 text-sm text-accent-600">{errors.problem_desc.message}</p>
+                  )}
+
+                  {/* AI Reformulation Button */}
                   <button
                     type="button"
-                    onClick={handleAIReformulation}
-                    disabled={aiLoading || !rapportBrut?.trim()}
-                    className="inline-flex items-center px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+                    onClick={handleProblemDescReformulation}
+                    disabled={aiLoading || !problemDesc?.trim()}
+                    className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg text-sm"
                   >
                     {aiLoading ? (
                       <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2" />
-                        <span>Analyse et reformulation en cours...</span>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                        <span>Reformulation en cours...</span>
                       </>
                     ) : (
                       <>
-                        <Sparkles className="h-5 w-5 mr-2" />
-                        <span>Améliorer le rapport avec l'IA</span>
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        <span>Reformuler avec l'IA</span>
                       </>
                     )}
                   </button>
 
-                  {/* AI Messages */}
-                  {aiError && (
-                    <p className="mt-2 text-sm text-red-600 flex items-center">
-                      <AlertTriangle className="h-4 w-4 mr-1" />
-                      {aiError}
-                    </p>
-                  )}
-                  {aiMessage && (
-                    <p className="mt-2 text-sm text-green-600 flex items-center">
-                      <span className="mr-1">✓</span>
-                      {aiMessage}
-                    </p>
-                  )}
-                </div>
-
-                {/* Rapport reformulé - Preview */}
-                {rapportReformule && rapportReformule.trim().length > 0 && (
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-purple-700">
-                      Rapport reformulé (prévisualisation)
-                    </label>
-                    <textarea
-                      {...register('rapport_reformule')}
-                      rows={6}
-                      className="w-full px-4 py-3 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors resize-none bg-purple-50"
-                      placeholder="Le rapport reformulé apparaîtra ici. Vous pourrez le modifier manuellement si nécessaire."
-                    />
-                    <div className="flex items-center gap-2">
+                  {/* Reformulated Description */}
+                  {problemDescReformule && problemDescReformule.trim().length > 0 && (
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-purple-700">
+                        Description reformulée (prévisualisation)
+                      </label>
+                      <textarea
+                        {...register('problem_desc_reformule')}
+                        rows={4}
+                        className="w-full px-4 py-3 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors resize-none bg-purple-50"
+                        placeholder="La description reformulée apparaîtra ici..."
+                      />
                       <button
                         type="button"
-                        onClick={handleRapportValidation}
+                        onClick={handleProblemDescValidation}
                         className="btn-success"
                       >
                         <span>✓</span>
                         <span>Valider la reformulation</span>
                       </button>
-                      <p className="text-xs text-gray-500">
-                        Ce rapport sera utilisé comme document officiel (client/facturation)
-                      </p>
                     </div>
+                  )}
+
+                  {/* AI Messages */}
+                  {aiError && (
+                    <p className="text-sm text-red-600 flex items-center">
+                      <AlertTriangle className="h-4 w-4 mr-1" />
+                      {aiError}
+                    </p>
+                  )}
+                  {problemDescAiMessage && (
+                    <p className="text-sm text-green-600 flex items-center">
+                      <span className="mr-1">✓</span>
+                      {problemDescAiMessage}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-sm font-medium text-green-700">
+                      Description validée (officielle)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setProblemDescValidated(false)}
+                      className="text-sm text-gray-600 hover:text-gray-800 underline"
+                    >
+                      Modifier
+                    </button>
+                  </div>
+                  <textarea
+                    {...register('problem_desc_reformule')}
+                    rows={4}
+                    className="w-full px-4 py-3 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors resize-none bg-green-50"
+                  />
+                  <p className="text-xs text-green-600">
+                    Cette description sera utilisée comme version officielle
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* AI Report Section */}
+            <div className="border-t border-gray-200 pt-6 space-y-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-purple-600" />
+                  <h3 className="text-lg font-semibold text-gray-900">Rapport technique</h3>
+                </div>
+                {!rapportValidated && (
+                  <div className="flex items-center gap-2 text-sm text-purple-600">
+                    <Sparkles className="h-4 w-4" />
+                    <span>IA disponible</span>
                   </div>
                 )}
-              </>
-            ) : (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="block text-sm font-medium text-green-700">
-                    Rapport validé (officiel)
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setRapportValidated(false)}
-                    className="text-sm text-gray-600 hover:text-gray-800 underline"
-                  >
-                    Modifier
-                  </button>
-                </div>
-                <textarea
-                  {...register('rapport_reformule')}
-                  rows={6}
-                  className="w-full px-4 py-3 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors resize-none bg-green-50"
-                />
-                <p className="text-xs text-green-600">
-                  Ce rapport est utilisé comme document officiel (client/facturation)
-                </p>
               </div>
-            )}
-          </div>
 
-          {/* Actions */}
-          <div className="flex items-center justify-end gap-1.5 pt-4 border-t border-gray-100">
-            <button
-              type="button"
-              onClick={onCancel}
-              className="btn-ghost"
-            >
-              Annuler
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary btn-lg"
-            >
-              {loading ? (
-                <div className="animate-spin rounded-full h-3 w-3 border border-slate-600 border-t-transparent" />
-              ) : (
+              {!rapportValidated ? (
                 <>
-                  <Save className="h-3.5 w-3.5" />
-                  <span>{request ? 'Mettre à jour' : 'Créer'}</span>
+                  {/* Rapport brut */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Rapport brut (dictée technicien)
+                    </label>
+                    <textarea
+                      {...register('rapport_brut')}
+                      rows={5}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors resize-none font-mono text-sm"
+                      placeholder="Saisie libre ou dictée vocale du rapport d'intervention..."
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      Ce rapport est conservé tel quel pour traçabilité
+                    </p>
+                  </div>
+
+                  {/* AI Button */}
+                  <div>
+                    <button
+                      type="button"
+                      onClick={handleAIReformulation}
+                      disabled={aiLoading || !rapportBrut?.trim()}
+                      className="inline-flex items-center px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+                    >
+                      {aiLoading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2" />
+                          <span>Analyse et reformulation en cours...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-5 w-5 mr-2" />
+                          <span>Améliorer le rapport avec l'IA</span>
+                        </>
+                      )}
+                    </button>
+
+                    {/* AI Messages */}
+                    {aiError && (
+                      <p className="mt-2 text-sm text-red-600 flex items-center">
+                        <AlertTriangle className="h-4 w-4 mr-1" />
+                        {aiError}
+                      </p>
+                    )}
+                    {aiMessage && (
+                      <p className="mt-2 text-sm text-green-600 flex items-center">
+                        <span className="mr-1">✓</span>
+                        {aiMessage}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Rapport reformulé - Preview */}
+                  {rapportReformule && rapportReformule.trim().length > 0 && (
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-purple-700">
+                        Rapport reformulé (prévisualisation)
+                      </label>
+                      <textarea
+                        {...register('rapport_reformule')}
+                        rows={6}
+                        className="w-full px-4 py-3 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors resize-none bg-purple-50"
+                        placeholder="Le rapport reformulé apparaîtra ici. Vous pourrez le modifier manuellement si nécessaire."
+                      />
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={handleRapportValidation}
+                          className="btn-success"
+                        >
+                          <span>✓</span>
+                          <span>Valider la reformulation</span>
+                        </button>
+                        <p className="text-xs text-gray-500">
+                          Ce rapport sera utilisé comme document officiel (client/facturation)
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-sm font-medium text-green-700">
+                      Rapport validé (officiel)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setRapportValidated(false)}
+                      className="text-sm text-gray-600 hover:text-gray-800 underline"
+                    >
+                      Modifier
+                    </button>
+                  </div>
+                  <textarea
+                    {...register('rapport_reformule')}
+                    rows={6}
+                    className="w-full px-4 py-3 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors resize-none bg-green-50"
+                  />
+                  <p className="text-xs text-green-600">
+                    Ce rapport est utilisé comme document officiel (client/facturation)
+                  </p>
+                </div>
               )}
-            </button>
-          </div>
-        </form>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 pt-4 border-t border-gray-100 mt-6 sticky bottom-0 bg-white pb-4 sm:pb-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] sm:shadow-none p-4 sm:p-0">
+              <button
+                type="button"
+                onClick={onCancel}
+                className="btn-ghost w-full sm:w-auto min-h-[44px]"
+              >
+                Annuler
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-primary w-full sm:w-auto min-h-[44px]"
+              >
+                {loading ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
+                ) : (
+                  <>
+                    <Save className="h-5 w-5 mr-2" />
+                    <span>{request ? 'Mettre à jour' : 'Créer'}</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

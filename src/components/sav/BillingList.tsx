@@ -149,7 +149,7 @@ export const BillingList: React.FC = () => {
     try {
       const { error } = await supabase
         .from('sav_requests')
-        .update({ 
+        .update({
           billing_status: 'billed',
           billed_at: new Date().toISOString(),
           status: 'archivee',
@@ -158,7 +158,7 @@ export const BillingList: React.FC = () => {
         .eq('id', id);
 
       if (error) throw error;
-      
+
       refetch();
     } catch (err) {
       console.error('Error marking as billed:', err);
@@ -170,7 +170,7 @@ export const BillingList: React.FC = () => {
     try {
       const { error } = await supabase
         .from('sav_requests')
-        .update({ 
+        .update({
           status: 'en_cours',
           billing_status: 'to_bill',
           archived_at: null,
@@ -179,7 +179,7 @@ export const BillingList: React.FC = () => {
         .eq('id', id);
 
       if (error) throw error;
-      
+
       refetch();
     } catch (err) {
       console.error('Error reactivating SAV:', err);
@@ -199,7 +199,7 @@ export const BillingList: React.FC = () => {
         .eq('id', id);
 
       if (error) throw error;
-      
+
       refetch();
     } catch (err) {
       console.error('Error deleting SAV:', err);
@@ -384,36 +384,34 @@ export const BillingList: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <button
             onClick={() => window.location.href = '/'}
-            className="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-colors"
+            className="flex-1 sm:flex-none justify-center inline-flex items-center px-4 py-3 sm:py-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-colors min-h-[44px]"
           >
             <ArrowLeft className="h-5 w-5 mr-2" />
-            Retour aux SAV
+            <span className="truncate">Retour aux SAV</span>
           </button>
 
           {/* View Mode Toggle */}
-          <div className="flex bg-gray-100 p-1 rounded-lg">
+          <div className="flex bg-gray-100 p-1 rounded-lg shrink-0">
             <button
               onClick={() => setViewMode('cards')}
-              className={`p-2 rounded-md transition-colors ${
-                viewMode === 'cards' 
-                  ? 'bg-white shadow-sm text-gray-900' 
+              className={`p-2 rounded-md transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${viewMode === 'cards'
+                  ? 'bg-white shadow-sm text-gray-900'
                   : 'text-gray-600 hover:text-primary-700'
-              }`}
+                }`}
             >
-              <LayoutGrid className="h-4 w-4" />
+              <LayoutGrid className="h-5 w-5 sm:h-4 sm:w-4" />
             </button>
             <button
               onClick={() => setViewMode('table')}
-              className={`p-2 rounded-md transition-colors ${
-                viewMode === 'table' 
-                  ? 'bg-white shadow-sm text-gray-900' 
+              className={`p-2 rounded-md transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${viewMode === 'table'
+                  ? 'bg-white shadow-sm text-gray-900'
                   : 'text-gray-600 hover:text-primary-700'
-              }`}
+                }`}
             >
-              <List className="h-4 w-4" />
+              <List className="h-5 w-5 sm:h-4 sm:w-4" />
             </button>
           </div>
         </div>
@@ -457,8 +455,8 @@ export const BillingList: React.FC = () => {
                       setSelectedSavId(id);
                       setShowInterventionForm(true);
                     }}
-                    onMarkComplete={() => {}} // Disabled for billing page
-                    onArchive={() => {}} // Disabled for billing page
+                    onMarkComplete={() => { }} // Disabled for billing page
+                    onArchive={() => { }} // Disabled for billing page
                     onEdit={(id) => {
                       const sav = requests.find(r => r.id === id);
                       setEditingSav(sav);
@@ -486,8 +484,8 @@ export const BillingList: React.FC = () => {
                     setSelectedSavId(id);
                     setShowInterventionForm(true);
                   }}
-                  onMarkComplete={() => {}} // Disabled for billing page
-                  onArchive={() => {}} // Disabled for billing page
+                  onMarkComplete={() => { }} // Disabled for billing page
+                  onArchive={() => { }} // Disabled for billing page
                   onEdit={(id) => {
                     const sav = requests.find(r => r.id === id);
                     setEditingSav(sav);

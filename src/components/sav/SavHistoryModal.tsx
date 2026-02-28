@@ -169,28 +169,28 @@ export const SavHistoryModal: React.FC<SavHistoryModalProps> = ({ savRequest, on
   const currentOuvrageData = extrabatHistory.length > 0 ? extrabatHistory[0] : null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center p-0 sm:p-4 z-50">
+      <div className="bg-white w-full h-full sm:h-auto sm:rounded-lg shadow-xl sm:max-w-4xl sm:max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 shrink-0">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
               <History className="h-6 w-6" />
               Historique SAV
             </h2>
-            <p className="text-gray-600 mt-1">
+            <p className="text-sm sm:text-base text-gray-600 mt-1">
               {savRequest.client_name}
               {savRequest.site && ` - ${savRequest.site}`}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
           >
             <X className="h-6 w-6" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader className="h-8 w-8 animate-spin text-primary-600" />
@@ -371,10 +371,10 @@ export const SavHistoryModal: React.FC<SavHistoryModalProps> = ({ savRequest, on
           )}
         </div>
 
-        <div className="border-t border-gray-200 p-4 bg-gray-50">
+        <div className="border-t border-gray-200 p-4 sm:p-6 bg-gray-50 shrink-0 sticky bottom-0 flex justify-end">
           <button
             onClick={onClose}
-            className="w-full px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-colors"
+            className="w-full sm:w-auto sm:px-8 px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-colors min-h-[44px]"
           >
             Fermer
           </button>

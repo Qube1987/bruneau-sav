@@ -144,15 +144,13 @@ export const MaintenanceTableRow: React.FC<MaintenanceTableRowProps> = ({
   return (
     <div
       data-maintenance-id={contract.id}
-      className={`border rounded-lg overflow-hidden ${
-      contract.priority
-        ? 'bg-red-900 border-red-800'
-        : 'bg-white border-gray-200'
-    }`}>
+      className={`border rounded-lg overflow-hidden ${contract.priority
+          ? 'bg-red-900 border-red-800'
+          : 'bg-white border-gray-200'
+        }`}>
       {/* Condensed Row */}
-      <div className={`flex items-center p-3 sm:p-4 cursor-pointer ${
-        contract.priority ? 'hover:bg-red-800' : 'hover:bg-gray-50'
-      }`} onClick={() => setExpanded(!expanded)}>
+      <div className={`flex items-center p-3 sm:p-4 cursor-pointer ${contract.priority ? 'hover:bg-red-800' : 'hover:bg-gray-50'
+        }`} onClick={() => setExpanded(!expanded)}>
         {/* Expand/Collapse Button */}
         <button className="hidden sm:block mr-2 sm:mr-3 p-1 hover:bg-gray-200 rounded flex-shrink-0">
           {expanded ? (
@@ -175,16 +173,30 @@ export const MaintenanceTableRow: React.FC<MaintenanceTableRowProps> = ({
           </div>
         </div>
 
-        {/* Client Name */}
+        {/* Client Name & Mobile Details */}
         <div className="flex-1 min-w-0 mr-2 sm:mr-4">
-          <div className={`font-medium truncate text-sm sm:text-base ${
-            contract.priority ? 'text-white' : 'text-gray-900'
-          }`}>{contract.client_name}</div>
-          {contract.site && (
-            <div className={`text-xs sm:text-sm truncate ${
-              contract.priority ? 'text-red-200' : 'text-gray-500'
-            }`}>{contract.site}</div>
-          )}
+          <div className="flex items-center gap-2 mb-0.5 sm:mb-0">
+            <span className={`sm:hidden px-2 py-0.5 rounded-full text-[10px] font-medium border ${getStatusColor(contract.status)} whitespace-nowrap`}>
+              {getStatusLabel(contract.status)}
+            </span>
+            <div className={`font-medium truncate text-sm sm:text-base ${contract.priority ? 'text-white' : 'text-gray-900'
+              }`}>{contract.client_name}</div>
+          </div>
+          <div className="flex items-center gap-2">
+            {contract.site && (
+              <div className={`text-xs sm:text-sm truncate ${contract.priority ? 'text-red-200' : 'text-gray-500'
+                }`}>{contract.site}</div>
+            )}
+            {/* Mobile System Type */}
+            <div className="sm:hidden flex items-center text-xs truncate">
+              {React.createElement(getSystemTypeIcon(contract.system_type), {
+                className: contract.priority ? 'h-3 w-3 mr-1 text-red-200' : 'h-3 w-3 mr-1 text-primary-600'
+              })}
+              <span className={contract.priority ? 'text-red-200' : 'text-gray-500'}>
+                {getSystemTypeLabel(contract.system_type)}
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* System Type */}
@@ -192,19 +204,16 @@ export const MaintenanceTableRow: React.FC<MaintenanceTableRowProps> = ({
           {React.createElement(getSystemTypeIcon(contract.system_type), {
             className: contract.priority ? 'h-4 w-4 mr-2 text-red-200' : 'h-4 w-4 mr-2 text-primary-600'
           })}
-          <span className={`text-sm ${
-            contract.priority ? 'text-red-100' : 'text-gray-700'
-          }`}>{getSystemTypeLabel(contract.system_type)}</span>
+          <span className={`text-sm ${contract.priority ? 'text-red-100' : 'text-gray-700'
+            }`}>{getSystemTypeLabel(contract.system_type)}</span>
         </div>
 
         {/* Battery Year */}
         <div className="hidden md:flex items-center w-24 mr-4 flex-shrink-0">
-          <Battery className={`h-4 w-4 mr-1 ${
-            contract.priority ? 'text-red-200' : 'text-gray-600'
-          }`} />
-          <span className={`text-sm ${
-            contract.priority ? 'text-red-100' : 'text-gray-700'
-          }`}>{contract.battery_installation_year || 'N/A'}</span>
+          <Battery className={`h-4 w-4 mr-1 ${contract.priority ? 'text-red-200' : 'text-gray-600'
+            }`} />
+          <span className={`text-sm ${contract.priority ? 'text-red-100' : 'text-gray-700'
+            }`}>{contract.battery_installation_year || 'N/A'}</span>
         </div>
 
         {/* Actions */}
@@ -215,11 +224,10 @@ export const MaintenanceTableRow: React.FC<MaintenanceTableRowProps> = ({
                 e.stopPropagation();
                 onTogglePriority(contract.id);
               }}
-              className={`hidden sm:flex p-1 sm:p-2 rounded-lg transition-colors ${
-                contract.priority
+              className={`hidden sm:flex p-1 sm:p-2 rounded-lg transition-colors ${contract.priority
                   ? 'text-yellow-300 hover:text-yellow-400 hover:bg-red-800'
                   : 'text-gray-400 hover:text-yellow-500 hover:bg-yellow-50'
-              }`}
+                }`}
               title={contract.priority ? 'Retirer de prioritaire' : 'Marquer comme prioritaire'}
             >
               <Star className={`h-4 w-4 ${contract.priority ? 'fill-yellow-300' : ''}`} />
@@ -227,11 +235,10 @@ export const MaintenanceTableRow: React.FC<MaintenanceTableRowProps> = ({
           )}
           <button
             onClick={handleDeleteContract}
-            className={`hidden sm:flex p-1 sm:p-2 rounded-lg transition-colors ${
-              contract.priority
+            className={`hidden sm:flex p-1 sm:p-2 rounded-lg transition-colors ${contract.priority
                 ? 'text-red-200 hover:text-white hover:bg-red-800'
                 : 'text-gray-400 hover:text-accent-600 hover:bg-accent-50'
-            }`}
+              }`}
             title="Supprimer le contrat"
           >
             <X className="h-4 w-4" />
@@ -355,74 +362,73 @@ export const MaintenanceTableRow: React.FC<MaintenanceTableRowProps> = ({
                   const isCurrentYear = interventionYear === currentYear;
 
                   return (
-                  <div key={intervention.id} className="bg-white p-3 rounded border relative">
-                    <div className="absolute top-2 right-2">
-                      <span className={`px-2 py-1 rounded-md text-xs font-bold ${
-                        isCurrentYear
-                          ? 'bg-green-600 text-white'
-                          : 'bg-gray-400 text-white'
-                      }`}>
-                        {interventionYear}
-                      </span>
-                    </div>
-                    <div className="mb-3 pr-16">
-                      <div className="flex items-center text-sm text-gray-600 mb-1">
-                        <Calendar className="h-4 w-4 mr-1" />
-                        {(intervention.started_at || intervention.scheduled_at) &&
-                          formatDate(intervention.started_at || intervention.scheduled_at)}
-                        {(intervention.ended_at || intervention.completed_at) && (
-                          <span className="ml-2">
-                            → {formatDate(intervention.ended_at || intervention.completed_at)}
-                          </span>
+                    <div key={intervention.id} className="bg-white p-3 rounded border relative">
+                      <div className="absolute top-2 right-2">
+                        <span className={`px-2 py-1 rounded-md text-xs font-bold ${isCurrentYear
+                            ? 'bg-green-600 text-white'
+                            : 'bg-gray-400 text-white'
+                          }`}>
+                          {interventionYear}
+                        </span>
+                      </div>
+                      <div className="mb-3 pr-16">
+                        <div className="flex items-center text-sm text-gray-600 mb-1">
+                          <Calendar className="h-4 w-4 mr-1" />
+                          {(intervention.started_at || intervention.scheduled_at) &&
+                            formatDate(intervention.started_at || intervention.scheduled_at)}
+                          {(intervention.ended_at || intervention.completed_at) && (
+                            <span className="ml-2">
+                              → {formatDate(intervention.ended_at || intervention.completed_at)}
+                            </span>
+                          )}
+                        </div>
+                        {(intervention.technicians && intervention.technicians.length > 0) ? (
+                          <div className="flex items-center text-sm text-gray-600 mb-1">
+                            <User className="h-4 w-4 mr-1" />
+                            {intervention.technicians.map((tech: any) => tech.display_name || tech.email).join(', ')}
+                          </div>
+                        ) : intervention.technician && (
+                          <div className="flex items-center text-sm text-gray-600 mb-1">
+                            <User className="h-4 w-4 mr-1" />
+                            {intervention.technician.display_name || intervention.technician.email}
+                          </div>
                         )}
                       </div>
-                      {(intervention.technicians && intervention.technicians.length > 0) ? (
-                        <div className="flex items-center text-sm text-gray-600 mb-1">
-                          <User className="h-4 w-4 mr-1" />
-                          {intervention.technicians.map((tech: any) => tech.display_name || tech.email).join(', ')}
-                        </div>
-                      ) : intervention.technician && (
-                        <div className="flex items-center text-sm text-gray-600 mb-1">
-                          <User className="h-4 w-4 mr-1" />
-                          {intervention.technician.display_name || intervention.technician.email}
-                        </div>
-                      )}
-                    </div>
-                    {intervention.photos && intervention.photos.length > 0 && (
-                      <PhotoSelector
-                        photos={intervention.photos}
-                        onPhotosUpdate={onRefresh}
-                      />
-                    )}
-                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-200">
-                      <button
-                        onClick={handleOpenKizeo}
-                        className="p-2.5 rounded-lg transition-colors flex items-center justify-center flex-shrink-0"
-                        style={{ backgroundColor: '#55C96B' }}
-                        title="Ouvrir dans Kizeo Forms"
-                      >
-                        <img
-                          src="/logokizeo.png"
-                          alt="Kizeo"
-                          className="h-5 w-5"
+                      {intervention.photos && intervention.photos.length > 0 && (
+                        <PhotoSelector
+                          photos={intervention.photos}
+                          onPhotosUpdate={onRefresh}
                         />
-                      </button>
-                      <button
-                        onClick={() => onEditIntervention(intervention.id, contract.id)}
-                        className="p-1 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors"
-                        title="Modifier l'intervention"
-                      >
-                        <Edit3 className="h-3 w-3" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteIntervention(intervention.id)}
-                        className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                        title="Supprimer l'intervention"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
+                      )}
+                      <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-200">
+                        <button
+                          onClick={handleOpenKizeo}
+                          className="p-2.5 rounded-lg transition-colors flex items-center justify-center flex-shrink-0"
+                          style={{ backgroundColor: '#55C96B' }}
+                          title="Ouvrir dans Kizeo Forms"
+                        >
+                          <img
+                            src="/logokizeo.png"
+                            alt="Kizeo"
+                            className="h-5 w-5"
+                          />
+                        </button>
+                        <button
+                          onClick={() => onEditIntervention(intervention.id, contract.id)}
+                          className="p-1 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors"
+                          title="Modifier l'intervention"
+                        >
+                          <Edit3 className="h-3 w-3" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteIntervention(intervention.id)}
+                          className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                          title="Supprimer l'intervention"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
                   );
                 })}
               </div>
@@ -431,30 +437,28 @@ export const MaintenanceTableRow: React.FC<MaintenanceTableRowProps> = ({
 
           {/* Action Buttons */}
           <div className="space-y-3">
-            {/* Mobile-only priority and delete buttons */}
-            <div className="sm:hidden flex gap-2">
+            <div className="sm:hidden flex flex-col gap-2">
               {onTogglePriority && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     onTogglePriority(contract.id);
                   }}
-                  className={`flex-1 flex items-center justify-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    contract.priority
-                      ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
-                      : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-                  }`}
+                  className={`w-full flex items-center justify-center px-4 py-3 rounded-lg text-sm font-medium transition-colors border min-h-[44px] ${contract.priority
+                      ? 'bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-600'
+                      : 'bg-white hover:bg-gray-50 text-gray-700 border-gray-300'
+                    }`}
                 >
-                  <Star className={`h-4 w-4 mr-1 ${contract.priority ? 'fill-white' : ''}`} />
-                  {contract.priority ? 'Retirer priorité' : 'Prioritaire'}
+                  <Star className={`h-4 w-4 mr-2 ${contract.priority ? 'fill-white' : ''}`} />
+                  {contract.priority ? 'Retirer priorité' : 'Marquer comme prioritaire'}
                 </button>
               )}
               <button
                 onClick={handleDeleteContract}
-                className="flex items-center justify-center px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors"
+                className="w-full flex items-center justify-center px-4 py-3 bg-red-50 hover:bg-red-100 text-red-700 text-sm font-medium rounded-lg transition-colors border border-red-200 min-h-[44px]"
               >
-                <Trash2 className="h-4 w-4 mr-1" />
-                Supprimer
+                <Trash2 className="h-4 w-4 mr-2" />
+                Supprimer le contrat
               </button>
             </div>
 
@@ -462,37 +466,36 @@ export const MaintenanceTableRow: React.FC<MaintenanceTableRowProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <button
                 onClick={handleActionWithScrollPreservation(() => onAddIntervention(contract.id))}
-                className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
+                className="w-full px-4 py-3 sm:py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm min-h-[44px]"
               >
                 Ajouter intervention
               </button>
 
               <button
                 onClick={handleActionWithScrollPreservation(() => onMarkCompleted(contract.id))}
-                className={`px-4 py-2.5 text-white text-sm font-medium rounded-lg transition-colors shadow-sm ${
-                  contract.status === 'realisee'
+                className={`w-full px-4 py-3 sm:py-2.5 text-white text-sm font-medium rounded-lg transition-colors shadow-sm min-h-[44px] ${contract.status === 'realisee'
                     ? 'bg-orange-600 hover:bg-orange-700'
                     : 'bg-green-600 hover:bg-green-700'
-                }`}
+                  }`}
               >
                 {contract.status === 'realisee' ? 'Marquer à faire' : 'Marquer réalisé'}
               </button>
             </div>
 
             {/* Secondary Actions */}
-            <div className="flex gap-2 pt-2 border-t border-gray-200">
+            <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-gray-200">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   onEdit(contract.id);
                 }}
-                className="flex-1 px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-lg transition-colors border border-gray-300"
+                className="w-full sm:flex-1 px-4 py-3 sm:py-2 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-lg transition-colors border border-gray-300 min-h-[44px]"
               >
                 Modifier
               </button>
               <button
                 onClick={handleDeleteContract}
-                className="px-4 py-2 bg-white hover:bg-red-50 text-red-600 text-sm font-medium rounded-lg transition-colors border border-red-300"
+                className="hidden sm:block px-4 py-2 bg-white hover:bg-red-50 text-red-600 text-sm font-medium rounded-lg transition-colors border border-red-300"
               >
                 Supprimer
               </button>

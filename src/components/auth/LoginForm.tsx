@@ -15,18 +15,18 @@ export const LoginForm = () => {
     setError('');
 
     const { error } = await signIn(email, password);
-    
+
     if (error) {
       setError('Email ou mot de passe incorrect');
     }
-    
+
     setLoading(false);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
       <div className="max-w-md w-full space-y-8">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8">
           <div className="text-center mb-8">
             <div className="mx-auto h-12 w-12 bg-primary-900 rounded-xl flex items-center justify-center mb-4">
               <LogIn className="h-6 w-6 text-white" />

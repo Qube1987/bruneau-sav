@@ -125,15 +125,15 @@ export function CallNoteForm({ onSubmit, onCancel, editingNote }: CallNoteFormPr
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4">
-      <div className="bg-white w-full h-full sm:h-auto sm:max-w-lg sm:rounded-lg shadow-xl flex flex-col max-h-screen">
+    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/50 p-0 sm:p-4">
+      <div className="bg-white w-full h-full sm:h-auto sm:max-w-lg sm:rounded-lg shadow-xl flex flex-col">
         <div className="flex items-center justify-between p-4 border-b sticky top-0 bg-white sm:rounded-t-lg">
           <h2 className="text-lg font-semibold">
             {editingNote ? 'Modifier la note' : 'Nouvelle note'}
           </h2>
           <button
             onClick={onCancel}
-            className="p-2 rounded-lg hover:bg-gray-100"
+            className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-gray-100"
             disabled={submitting}
           >
             <X className="w-5 h-5" />
@@ -162,9 +162,8 @@ export function CallNoteForm({ onSubmit, onCancel, editingNote }: CallNoteFormPr
                   }
                 }}
                 placeholder="Nom du client (optionnel)"
-                className={`w-full px-4 py-3 text-base border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  showExtrabatSearch ? 'border-blue-300 bg-blue-50' : 'border-gray-300'
-                }`}
+                className={`w-full px-4 py-3 text-base border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${showExtrabatSearch ? 'border-blue-300 bg-blue-50' : 'border-gray-300'
+                  }`}
               />
               {loadingExtrabat && (
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
@@ -266,12 +265,12 @@ export function CallNoteForm({ onSubmit, onCancel, editingNote }: CallNoteFormPr
           </div>
         </form>
 
-        <div className="p-4 border-t bg-gray-50 sm:rounded-b-lg sticky bottom-0">
+        <div className="p-4 border-t bg-gray-50 sm:rounded-b-lg sticky bottom-0 mt-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] sm:shadow-none">
           <button
             type="submit"
             onClick={handleSubmit}
             disabled={submitting}
-            className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors min-h-[44px]"
           >
             {editingNote ? (
               <>

@@ -169,132 +169,138 @@ export const MaintenanceInterventionForm: React.FC<MaintenanceInterventionFormPr
 
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center p-4 z-50 overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full my-8 max-h-[90vh] overflow-y-auto">
-        <div className="border-b border-gray-200 px-6 py-4 rounded-t-2xl">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center p-0 sm:p-4 z-50 sm:overflow-y-auto">
+      <div className="bg-white sm:rounded-2xl shadow-xl max-w-lg w-full h-full sm:h-auto sm:min-h-0 sm:max-h-[90vh] sm:my-8 flex flex-col">
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-4 sm:px-6 py-4 sm:rounded-t-2xl z-10 shrink-0">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 truncate pr-4">
               {intervention ? 'Modifier l\'intervention' : 'Ajouter une intervention'}
             </h2>
             <button
               onClick={onCancel}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center"
             >
               <X className="h-5 w-5 text-gray-500" />
             </button>
           </div>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm text-gray-600 mt-1 truncate">
             Client: <span className="font-medium">{clientName}</span>
           </p>
         </div>
 
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="p-6 space-y-6">
-
-          {/* Technicians */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              <UserIcon className="h-4 w-4 inline mr-2" />
-              Intervenants
-            </label>
-            <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-300 rounded-lg p-3">
-              {users.map((user) => (
-                <label
-                  key={user.id}
-                  className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedTechnicians.includes(user.id)}
-                    onChange={() => toggleTechnician(user.id)}
-                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                  />
-                  <span className="text-sm text-gray-700">
-                    {user.display_name || user.email}
-                  </span>
+        <div className="flex-1 overflow-y-auto">
+          <form onSubmit={handleSubmit(handleFormSubmit)} className="p-4 sm:p-6 space-y-6 flex flex-col min-h-full">
+            <div className="flex-1 space-y-6">
+              {/* Technicians */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  <UserIcon className="h-4 w-4 inline mr-2" />
+                  Intervenants
                 </label>
-              ))}
+                <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-300 rounded-lg p-3">
+                  {users.map((user) => (
+                    <label
+                      key={user.id}
+                      className="flex items-center space-x-3 p-3 sm:p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedTechnicians.includes(user.id)}
+                        onChange={() => toggleTechnician(user.id)}
+                        className="h-5 w-5 sm:h-4 sm:w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                      />
+                      <span className="text-sm text-gray-700">
+                        {user.display_name || user.email}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                {selectedTechnicians.length === 0 && (
+                  <p className="mt-2 text-sm text-gray-500">Aucun intervenant sélectionné</p>
+                )}
+              </div>
+
+              {/* Date and Time Fields */}
+              <div className="space-y-6">
+                <TimeSelector
+                  label="Date et heure de début"
+                  value={watch('started_at')}
+                  onChange={(value) => setValue('started_at', value)}
+                  required
+                  error={errors.started_at?.message}
+                  icon={<Calendar className="h-4 w-4 inline mr-2" />}
+                />
+
+                <TimeSelector
+                  label="Date et heure de fin"
+                  value={watch('ended_at')}
+                  onChange={(value) => setValue('ended_at', value)}
+                  icon={<Calendar className="h-4 w-4 inline mr-2" />}
+                />
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Notes d'intervention
+                </label>
+                <textarea
+                  {...register('notes')}
+                  rows={4}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors resize-none"
+                  placeholder="Décrivez les actions réalisées, les observations, les pièces changées, etc."
+                />
+              </div>
+
+              {/* Battery Selector */}
+              <div>
+                <BatterySelector
+                  selectedBatteries={selectedBatteries}
+                  onBatteriesChange={setSelectedBatteries}
+                />
+              </div>
+
+              {/* Photos */}
+              <div>
+                <PhotoUpload
+                  interventionId={intervention?.id}
+                  interventionType="maintenance"
+                  photos={photos}
+                  onPhotosChange={setPhotos}
+                  disabled={loading}
+                />
+              </div>
+
             </div>
-            {selectedTechnicians.length === 0 && (
-              <p className="mt-2 text-sm text-gray-500">Aucun intervenant sélectionné</p>
-            )}
-          </div>
 
-          {/* Date and Time Fields */}
-          <div className="space-y-6">
-            <TimeSelector
-              label="Date et heure de début"
-              value={watch('started_at')}
-              onChange={(value) => setValue('started_at', value)}
-              required
-              error={errors.started_at?.message}
-              icon={<Calendar className="h-4 w-4 inline mr-2" />}
-            />
-
-            <TimeSelector
-              label="Date et heure de fin"
-              value={watch('ended_at')}
-              onChange={(value) => setValue('ended_at', value)}
-              icon={<Calendar className="h-4 w-4 inline mr-2" />}
-            />
-          </div>
-
-          {/* Notes */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Notes d'intervention
-            </label>
-            <textarea
-              {...register('notes')}
-              rows={4}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors resize-none"
-              placeholder="Décrivez les actions réalisées, les observations, les pièces changées, etc."
-            />
-          </div>
-
-          {/* Battery Selector */}
-          <div>
-            <BatterySelector
-              selectedBatteries={selectedBatteries}
-              onBatteriesChange={setSelectedBatteries}
-            />
-          </div>
-
-          {/* Photos */}
-          <div>
-            <PhotoUpload
-              interventionId={intervention?.id}
-              interventionType="maintenance"
-              photos={photos}
-              onPhotosChange={setPhotos}
-              disabled={loading}
-            />
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={onCancel}
-              className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
-            >
-              Annuler
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-6 py-3 bg-primary-900 hover:bg-primary-800 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-            >
-              {loading ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
-              ) : (
-                <>
-                  <Save className="h-5 w-5" />
-                  <span>{intervention ? 'Mettre à jour' : 'Ajouter l\'intervention'}</span>
-                </>
-              )}
-            </button>
-          </div>
-        </form>
+            {/* Actions */}
+            <div className="sticky bottom-0 -mx-4 -mb-4 sm:-mx-6 sm:-mb-6 p-4 sm:p-6 bg-white border-t border-gray-200 mt-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] sm:shadow-none z-10">
+              <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 sm:gap-4">
+                <button
+                  type="button"
+                  onClick={onCancel}
+                  className="w-full sm:w-auto px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium min-h-[44px]"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full sm:w-auto px-6 py-3 bg-primary-900 hover:bg-primary-800 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-h-[44px]"
+                >
+                  {loading ? (
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
+                  ) : (
+                    <>
+                      <Save className="h-5 w-5" />
+                      <span>{intervention ? 'Mettre à jour' : 'Ajouter l\'intervention'}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

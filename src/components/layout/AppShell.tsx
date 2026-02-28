@@ -38,7 +38,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
             <div className="flex items-center min-w-0 flex-1">
               <button
                 type="button"
-                className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 sm:hidden flex-shrink-0"
+                className="h-11 w-11 flex items-center justify-center rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 md:hidden flex-shrink-0"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
                 {mobileMenuOpen ? (
@@ -59,33 +59,30 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
             <div className="hidden md:flex items-center space-x-1 mx-2 lg:mx-4 flex-shrink-0">
               <Link
                 to="/"
-                className={`px-2 lg:px-3 py-2 rounded-lg font-medium transition-colors flex items-center text-xs lg:text-sm whitespace-nowrap ${
-                  location.pathname === '/' || location.pathname === '/billing'
+                className={`px-2 lg:px-3 py-2 rounded-lg font-medium transition-colors flex items-center text-xs lg:text-sm whitespace-nowrap ${location.pathname === '/' || location.pathname === '/billing'
                     ? 'bg-primary-100 text-primary-800'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                }`}
+                  }`}
               >
                 <AlertTriangle className="h-3 w-3 lg:h-4 lg:w-4 mr-1" />
                 SAV
               </Link>
               <Link
                 to="/maintenance"
-                className={`px-2 lg:px-3 py-2 rounded-lg font-medium transition-colors flex items-center text-xs lg:text-sm whitespace-nowrap ${
-                  location.pathname === '/maintenance'
+                className={`px-2 lg:px-3 py-2 rounded-lg font-medium transition-colors flex items-center text-xs lg:text-sm whitespace-nowrap ${location.pathname === '/maintenance'
                     ? 'bg-primary-100 text-primary-800'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                }`}
+                  }`}
               >
                 <Wrench className="h-3 w-3 lg:h-4 lg:w-4 mr-1" />
                 Maintenance
               </Link>
               <Link
                 to="/callnotes"
-                className={`px-2 lg:px-3 py-2 rounded-lg font-medium transition-colors flex items-center text-xs lg:text-sm whitespace-nowrap ${
-                  location.pathname === '/callnotes'
+                className={`px-2 lg:px-3 py-2 rounded-lg font-medium transition-colors flex items-center text-xs lg:text-sm whitespace-nowrap ${location.pathname === '/callnotes'
                     ? 'bg-primary-100 text-primary-800'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                }`}
+                  }`}
               >
                 <Phone className="h-3 w-3 lg:h-4 lg:w-4 mr-1" />
                 Rappels
@@ -96,7 +93,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
             <div className="relative flex-shrink-0 min-w-0 mr-4">
               <button
                 type="button"
-                className="flex items-center text-sm rounded-lg p-1 sm:p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors min-w-0"
+                className="flex items-center text-sm rounded-lg h-11 px-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors min-w-0"
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
               >
                 <div className="h-7 w-7 sm:h-8 sm:w-8 bg-primary-100 rounded-full flex items-center justify-center mr-1 sm:mr-2 flex-shrink-0">
@@ -157,15 +154,14 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="sm:hidden border-t border-gray-200 bg-white relative z-50 overflow-hidden">
+          <div className="md:hidden border-t border-gray-200 bg-white relative z-50 overflow-hidden">
             <div className="px-4 py-2 space-y-1">
               <Link
                 to="/"
-                className={`block px-3 py-2 rounded-md font-medium ${
-                  location.pathname === '/' || location.pathname === '/billing'
+                className={`block px-3 py-3 rounded-md font-medium ${location.pathname === '/' || location.pathname === '/billing'
                     ? 'bg-primary-100 text-primary-800'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                }`}
+                  }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <AlertTriangle className="h-4 w-4 inline mr-2" />
@@ -173,11 +169,10 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
               </Link>
               <Link
                 to="/maintenance"
-                className={`block px-3 py-2 rounded-md font-medium ${
-                  location.pathname === '/maintenance'
+                className={`block px-3 py-3 rounded-md font-medium ${location.pathname === '/maintenance'
                     ? 'bg-primary-100 text-primary-800'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                }`}
+                  }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <Wrench className="h-4 w-4 inline mr-2" />
@@ -185,11 +180,10 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
               </Link>
               <Link
                 to="/callnotes"
-                className={`block px-3 py-2 rounded-md font-medium ${
-                  location.pathname === '/callnotes'
+                className={`block px-3 py-3 rounded-md font-medium ${location.pathname === '/callnotes'
                     ? 'bg-primary-100 text-primary-800'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                }`}
+                  }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <Phone className="h-4 w-4 inline mr-2" />

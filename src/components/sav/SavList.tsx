@@ -216,10 +216,10 @@ export const SavList: React.FC = () => {
       }
 
       setShowSavForm(false);
-      
+
       // Reset Extrabat data
       setExtrabatData({});
-      
+
       refetch();
     } catch (err) {
       console.error('Error creating SAV request:', err);
@@ -310,7 +310,7 @@ export const SavList: React.FC = () => {
 
       setShowSavForm(false);
       setEditingSav(null);
-      
+
       refetch();
     } catch (err) {
       console.error('Error updating SAV request:', err);
@@ -543,7 +543,7 @@ export const SavList: React.FC = () => {
       setShowInterventionForm(false);
       setSelectedSavId(null);
       setEditingIntervention(null);
-      
+
       refetch();
     } catch (err) {
       console.error('Error adding intervention:', err);
@@ -837,7 +837,7 @@ export const SavList: React.FC = () => {
         .eq('id', id);
 
       if (error) throw error;
-      
+
       refetch();
     } catch (err) {
       console.error('Error deleting SAV request:', err);
@@ -895,7 +895,7 @@ export const SavList: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <button
             onClick={toggleSavFilter}
             className="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-colors border border-gray-300"
@@ -933,44 +933,40 @@ export const SavList: React.FC = () => {
           <div className="flex bg-gray-100 p-1 rounded-lg">
             <button
               onClick={() => setViewMode('cards')}
-              className={`p-2 rounded-md transition-colors ${
-                viewMode === 'cards'
+              className={`p-2 rounded-md transition-colors ${viewMode === 'cards'
                   ? 'bg-white shadow-sm text-gray-900'
                   : 'text-gray-600 hover:text-primary-700'
-              }`}
+                }`}
               title="Vue cartes"
             >
               <LayoutGrid className="h-4 w-4" />
             </button>
             <button
               onClick={() => setViewMode('table')}
-              className={`p-2 rounded-md transition-colors ${
-                viewMode === 'table'
+              className={`p-2 rounded-md transition-colors ${viewMode === 'table'
                   ? 'bg-white shadow-sm text-gray-900'
                   : 'text-gray-600 hover:text-primary-700'
-              }`}
+                }`}
               title="Vue liste"
             >
               <List className="h-4 w-4" />
             </button>
             <button
               onClick={() => setViewMode('map')}
-              className={`p-2 rounded-md transition-colors ${
-                viewMode === 'map'
+              className={`p-2 rounded-md transition-colors ${viewMode === 'map'
                   ? 'bg-white shadow-sm text-gray-900'
                   : 'text-gray-600 hover:text-primary-700'
-              }`}
+                }`}
               title="Vue carte"
             >
               <Map className="h-4 w-4" />
             </button>
             <button
               onClick={() => setViewMode('dashboard')}
-              className={`p-2 rounded-md transition-colors ${
-                viewMode === 'dashboard'
+              className={`p-2 rounded-md transition-colors ${viewMode === 'dashboard'
                   ? 'bg-white shadow-sm text-gray-900'
                   : 'text-gray-600 hover:text-primary-700'
-              }`}
+                }`}
               title="Tableau de bord"
             >
               <BarChart3 className="h-4 w-4" />

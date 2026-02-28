@@ -241,11 +241,10 @@ export const SavTableRow: React.FC<SavTableRowProps> = ({
   return (
     <div
       data-sav-id={request.id}
-      className={`relative rounded-lg overflow-hidden transition-all duration-200 ${
-      request.priority
-        ? 'bg-white border-l-4 border-blue-500 shadow-md'
-        : 'bg-white border border-gray-200 hover:shadow-sm'
-    }`}>
+      className={`relative rounded-lg overflow-hidden transition-all duration-200 ${request.priority
+          ? 'bg-white border-l-4 border-blue-500 shadow-md'
+          : 'bg-white border border-gray-200 hover:shadow-sm'
+        }`}>
       {/* Condensed Row */}
       <div className="flex items-center p-3 sm:p-4 cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => setExpanded(!expanded)}>
         {/* Expand/Collapse Button */}
@@ -272,7 +271,17 @@ export const SavTableRow: React.FC<SavTableRowProps> = ({
         </div>
 
         {/* Client Name */}
-        <div className="flex-1 min-w-0 mr-2 sm:mr-4">
+        <div className="flex-1 min-w-0 mr-2 sm:mr-4 flex flex-col">
+          <div className="flex items-center gap-2 mb-1 sm:hidden">
+            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(request.status)}`}>
+              {getStatusLabel(request.status)}
+            </span>
+            {request.has_maintenance_contract && (
+              <span className="px-1.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 border border-green-200">
+                Contrat
+              </span>
+            )}
+          </div>
           <div className="font-medium truncate text-sm sm:text-base text-gray-900">
             {request.client_name}
           </div>
@@ -298,11 +307,10 @@ export const SavTableRow: React.FC<SavTableRowProps> = ({
                 e.stopPropagation();
                 onTogglePriority(request.id);
               }}
-              className={`flex p-1.5 sm:p-2 rounded-lg transition-colors ${
-                request.priority
+              className={`flex p-1.5 sm:p-2 rounded-lg transition-colors ${request.priority
                   ? 'text-blue-600 bg-blue-50 hover:bg-blue-100'
                   : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'
-              }`}
+                }`}
               title={request.priority ? 'Retirer de prioritaire' : 'Marquer comme prioritaire'}
             >
               <Star className={`h-4 w-4 ${request.priority ? 'fill-blue-600' : ''}`} />
@@ -314,11 +322,10 @@ export const SavTableRow: React.FC<SavTableRowProps> = ({
                 e.stopPropagation();
                 onToggleQuickIntervention(request.id);
               }}
-              className={`flex p-1.5 sm:p-2 rounded-lg transition-colors ${
-                request.is_quick_intervention
+              className={`flex p-1.5 sm:p-2 rounded-lg transition-colors ${request.is_quick_intervention
                   ? 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100'
                   : 'text-gray-400 hover:text-emerald-600 hover:bg-emerald-50'
-              }`}
+                }`}
               title={request.is_quick_intervention ? 'Retirer intervention rapide' : 'Marquer comme intervention rapide'}
             >
               <Zap className={`h-4 w-4 ${request.is_quick_intervention ? 'fill-emerald-600' : ''}`} />
@@ -330,11 +337,10 @@ export const SavTableRow: React.FC<SavTableRowProps> = ({
                 e.stopPropagation();
                 onToggleLongIntervention(request.id);
               }}
-              className={`flex p-1.5 sm:p-2 rounded-lg transition-colors ${
-                request.is_long_intervention
+              className={`flex p-1.5 sm:p-2 rounded-lg transition-colors ${request.is_long_intervention
                   ? 'text-amber-600 bg-amber-50 hover:bg-amber-100'
                   : 'text-gray-400 hover:text-amber-600 hover:bg-amber-50'
-              }`}
+                }`}
               title={request.is_long_intervention ? 'Retirer intervention longue' : 'Marquer comme intervention longue'}
             >
               <Clock className={`h-4 w-4 ${request.is_long_intervention ? 'fill-amber-600' : ''}`} />

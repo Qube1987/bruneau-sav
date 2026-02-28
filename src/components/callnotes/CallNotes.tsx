@@ -59,7 +59,7 @@ export function CallNotes() {
             <h1 className="text-2xl font-bold text-gray-900">Appels & Rappels</h1>
             <button
               onClick={() => setShowForm(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
+              className="flex items-center justify-center gap-2 px-4 py-2 min-h-[44px] bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
             >
               <Plus className="w-5 h-5" />
               <span className="hidden sm:inline">Nouvelle note</span>
@@ -82,33 +82,30 @@ export function CallNotes() {
           <div className="flex gap-2 overflow-x-auto pb-2 -mb-2">
             <button
               onClick={() => setFilter('active')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap ${
-                filter === 'active'
+              className={`flex items-center justify-center gap-2 px-4 py-2 min-h-[44px] rounded-lg font-medium transition-colors whitespace-nowrap ${filter === 'active'
                   ? 'bg-blue-100 text-blue-700'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+                }`}
             >
               <Circle className="w-4 h-4" />
               À faire ({activeNotes.length})
             </button>
             <button
               onClick={() => setFilter('completed')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap ${
-                filter === 'completed'
+              className={`flex items-center justify-center gap-2 px-4 py-2 min-h-[44px] rounded-lg font-medium transition-colors whitespace-nowrap ${filter === 'completed'
                   ? 'bg-blue-100 text-blue-700'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+                }`}
             >
               <CheckCircle2 className="w-4 h-4" />
               Terminées ({completedNotes.length})
             </button>
             <button
               onClick={() => setFilter('all')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap ${
-                filter === 'all'
+              className={`flex items-center justify-center gap-2 px-4 py-2 min-h-[44px] rounded-lg font-medium transition-colors whitespace-nowrap ${filter === 'all'
                   ? 'bg-blue-100 text-blue-700'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+                }`}
             >
               Toutes ({callNotes.length})
             </button>

@@ -98,12 +98,12 @@ export const NomenclatureModal: React.FC<NomenclatureModalProps> = ({
   }, [extrabatId, ouvrageId]);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center z-50 p-0 sm:p-4">
+      <div className="bg-white sm:rounded-lg shadow-xl sm:max-w-4xl w-full h-full sm:h-auto sm:max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b shrink-0">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center">
               <Package className="h-5 w-5 mr-2" />
               Nomenclature - {clientName}
             </h2>
@@ -113,14 +113,14 @@ export const NomenclatureModal: React.FC<NomenclatureModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0"
           >
             <X className="h-6 w-6" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           {loading && (
             <div className="flex items-center justify-center py-12">
               <Loader className="h-8 w-8 animate-spin text-primary-600" />
@@ -142,7 +142,7 @@ export const NomenclatureModal: React.FC<NomenclatureModalProps> = ({
           )}
 
           {!loading && !error && articles.length > 0 && (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto -mx-4 sm:mx-0">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
@@ -191,10 +191,10 @@ export const NomenclatureModal: React.FC<NomenclatureModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end p-6 border-t">
+        <div className="flex justify-end p-4 sm:p-6 border-t shrink-0 sticky bottom-0 bg-white">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+            className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors min-h-[44px]"
           >
             Fermer
           </button>

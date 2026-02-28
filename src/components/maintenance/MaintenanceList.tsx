@@ -72,7 +72,7 @@ export const MaintenanceList: React.FC = () => {
   const handleCreateContract = async (data: any) => {
     try {
       setLoading(true);
-      
+
       // Extract city from address if provided
       let city_derived = null;
       if (data.address) {
@@ -119,10 +119,10 @@ export const MaintenanceList: React.FC = () => {
       if (error) throw error;
 
       setShowContractForm(false);
-      
+
       // Reset Extrabat data
       setExtrabatData({});
-      
+
       refetch();
     } catch (err) {
       console.error('Error creating maintenance contract:', err);
@@ -135,7 +135,7 @@ export const MaintenanceList: React.FC = () => {
   const handleUpdateContract = async (data: any) => {
     try {
       setLoading(true);
-      
+
       // Extract city from address if provided
       let city_derived = null;
       if (data.address) {
@@ -179,7 +179,7 @@ export const MaintenanceList: React.FC = () => {
 
       setShowContractForm(false);
       setEditingContract(null);
-      
+
       refetch();
     } catch (err) {
       console.error('Error updating maintenance contract:', err);
@@ -405,7 +405,7 @@ export const MaintenanceList: React.FC = () => {
       setShowInterventionForm(false);
       setSelectedContractId(null);
       setEditingIntervention(null);
-      
+
       refetch();
     } catch (err) {
       console.error('Error adding intervention:', err);
@@ -606,7 +606,7 @@ export const MaintenanceList: React.FC = () => {
         .eq('id', id);
 
       if (error) throw error;
-      
+
       refetch();
     } catch (err) {
       console.error('Error deleting maintenance contract:', err);
@@ -654,7 +654,7 @@ export const MaintenanceList: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           {canAccessBillingInfo && (
             <button
               onClick={() => setViewMode('dashboard')}
@@ -685,33 +685,30 @@ export const MaintenanceList: React.FC = () => {
           <div className="flex bg-gray-100 p-1 rounded-lg">
             <button
               onClick={() => setViewMode('cards')}
-              className={`p-2 rounded-md transition-colors ${
-                viewMode === 'cards'
+              className={`p-2 rounded-md transition-colors ${viewMode === 'cards'
                   ? 'bg-white shadow-sm text-gray-900'
                   : 'text-gray-600 hover:text-primary-700'
-              }`}
+                }`}
               title="Vue cartes"
             >
               <LayoutGrid className="h-4 w-4" />
             </button>
             <button
               onClick={() => setViewMode('table')}
-              className={`p-2 rounded-md transition-colors ${
-                viewMode === 'table'
+              className={`p-2 rounded-md transition-colors ${viewMode === 'table'
                   ? 'bg-white shadow-sm text-gray-900'
                   : 'text-gray-600 hover:text-primary-700'
-              }`}
+                }`}
               title="Vue liste"
             >
               <List className="h-4 w-4" />
             </button>
             <button
               onClick={() => setViewMode('map')}
-              className={`p-2 rounded-md transition-colors ${
-                viewMode === 'map'
+              className={`p-2 rounded-md transition-colors ${viewMode === 'map'
                   ? 'bg-white shadow-sm text-gray-900'
                   : 'text-gray-600 hover:text-primary-700'
-              }`}
+                }`}
               title="Vue carte"
             >
               <Map className="h-4 w-4" />
@@ -768,160 +765,160 @@ export const MaintenanceList: React.FC = () => {
           {!contractsLoading && contracts.length > 0 && (
             <>
               {viewMode === 'cards' ? (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {contracts.map((contract) => (
-                <MaintenanceCard
-                  key={contract.id}
-                  contract={contract}
-                  onAddIntervention={(id) => {
-                    setSelectedContractId(id);
-                    setShowInterventionForm(true);
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {contracts.map((contract) => (
+                    <MaintenanceCard
+                      key={contract.id}
+                      contract={contract}
+                      onAddIntervention={(id) => {
+                        setSelectedContractId(id);
+                        setShowInterventionForm(true);
+                      }}
+                      onMarkCompleted={handleMarkCompleted}
+                      onEdit={(id) => {
+                        const contract = contracts.find(c => c.id === id);
+                        setEditingContract(contract);
+                        setShowContractForm(true);
+                      }}
+                      onDelete={handleDeleteContract}
+                      onEditIntervention={handleEditIntervention}
+                      onDeleteIntervention={handleDeleteIntervention}
+                      onRefresh={refetch}
+                      onToggleInvoiceSent={handleToggleInvoiceSent}
+                      onToggleInvoicePaid={handleToggleInvoicePaid}
+                    />
+                  ))}
+                </div>
+              ) : viewMode === 'table' ? (
+                <div className="space-y-2">
+                  {contracts.map((contract) => (
+                    <MaintenanceTableRow
+                      key={contract.id}
+                      contract={contract}
+                      onAddIntervention={(id) => {
+                        setSelectedContractId(id);
+                        setShowInterventionForm(true);
+                      }}
+                      onMarkCompleted={handleMarkCompleted}
+                      onEdit={(id) => {
+                        const contract = contracts.find(c => c.id === id);
+                        setEditingContract(contract);
+                        setShowContractForm(true);
+                      }}
+                      onDelete={handleDeleteContract}
+                      onEditIntervention={handleEditIntervention}
+                      onDeleteIntervention={handleDeleteIntervention}
+                      onTogglePriority={handleTogglePriority}
+                      onRefresh={refetch}
+                      onToggleInvoiceSent={handleToggleInvoiceSent}
+                      onToggleInvoicePaid={handleToggleInvoicePaid}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <MapView
+                  locations={contracts.map(contract => ({
+                    id: contract.id,
+                    clientName: contract.client_name,
+                    address: contract.address || '',
+                    status: contract.status,
+                    type: 'maintenance',
+                    systemType: contract.system_type,
+                    priority: contract.priority,
+                    problemDesc: contract.observations,
+                    latitude: contract.latitude,
+                    longitude: contract.longitude
+                  }))}
+                  onLocationClick={(locationId) => {
+                    setSelectedContractId(locationId);
+                    setShowDetailsModal(true);
                   }}
-                  onMarkCompleted={handleMarkCompleted}
-                  onEdit={(id) => {
-                    const contract = contracts.find(c => c.id === id);
-                    setEditingContract(contract);
-                    setShowContractForm(true);
-                  }}
-                  onDelete={handleDeleteContract}
-                  onEditIntervention={handleEditIntervention}
-                  onDeleteIntervention={handleDeleteIntervention}
-                  onRefresh={refetch}
-                  onToggleInvoiceSent={handleToggleInvoiceSent}
-                  onToggleInvoicePaid={handleToggleInvoicePaid}
                 />
-              ))}
-            </div>
-          ) : viewMode === 'table' ? (
-            <div className="space-y-2">
-              {contracts.map((contract) => (
-                <MaintenanceTableRow
-                  key={contract.id}
-                  contract={contract}
-                  onAddIntervention={(id) => {
-                    setSelectedContractId(id);
-                    setShowInterventionForm(true);
-                  }}
-                  onMarkCompleted={handleMarkCompleted}
-                  onEdit={(id) => {
-                    const contract = contracts.find(c => c.id === id);
-                    setEditingContract(contract);
-                    setShowContractForm(true);
-                  }}
-                  onDelete={handleDeleteContract}
-                  onEditIntervention={handleEditIntervention}
-                  onDeleteIntervention={handleDeleteIntervention}
-                  onTogglePriority={handleTogglePriority}
-                  onRefresh={refetch}
-                  onToggleInvoiceSent={handleToggleInvoiceSent}
-                  onToggleInvoicePaid={handleToggleInvoicePaid}
-                />
-              ))}
-            </div>
-          ) : (
-            <MapView
-              locations={contracts.map(contract => ({
-                id: contract.id,
-                clientName: contract.client_name,
-                address: contract.address || '',
-                status: contract.status,
-                type: 'maintenance',
-                systemType: contract.system_type,
-                priority: contract.priority,
-                problemDesc: contract.observations,
-                latitude: contract.latitude,
-                longitude: contract.longitude
-              }))}
-              onLocationClick={(locationId) => {
-                setSelectedContractId(locationId);
-                setShowDetailsModal(true);
+              )}
+            </>
+          )}
+
+          {/* Modals */}
+          {showContractForm && (
+            <MaintenanceForm
+              contract={editingContract}
+              users={users}
+              extrabatData={extrabatData}
+              onExtrabatDataChange={setExtrabatData}
+              onSubmit={editingContract ? handleUpdateContract : handleCreateContract}
+              onCancel={() => {
+                setShowContractForm(false);
+                setEditingContract(null);
+                setExtrabatData({});
               }}
+              loading={loading}
             />
           )}
-        </>
-      )}
 
-      {/* Modals */}
-      {showContractForm && (
-        <MaintenanceForm
-          contract={editingContract}
-          users={users}
-          extrabatData={extrabatData}
-          onExtrabatDataChange={setExtrabatData}
-          onSubmit={editingContract ? handleUpdateContract : handleCreateContract}
-          onCancel={() => {
-            setShowContractForm(false);
-            setEditingContract(null);
-            setExtrabatData({});
-          }}
-          loading={loading}
-        />
-      )}
+          {showInterventionForm && selectedContract && (
+            <MaintenanceInterventionForm
+              contractId={selectedContractId!}
+              clientName={selectedContract.client_name}
+              intervention={editingIntervention}
+              users={users}
+              onSubmit={handleAddIntervention}
+              onCancel={() => {
+                setShowInterventionForm(false);
+                setSelectedContractId(null);
+                setEditingIntervention(null);
+              }}
+              loading={loading}
+            />
+          )}
 
-      {showInterventionForm && selectedContract && (
-        <MaintenanceInterventionForm
-          contractId={selectedContractId!}
-          clientName={selectedContract.client_name}
-          intervention={editingIntervention}
-          users={users}
-          onSubmit={handleAddIntervention}
-          onCancel={() => {
-            setShowInterventionForm(false);
-            setSelectedContractId(null);
-            setEditingIntervention(null);
-          }}
-          loading={loading}
-        />
-      )}
-
-      {/* Details Modal */}
-      {showDetailsModal && selectedContract && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-900">Détails du contrat de maintenance</h2>
-              <button
-                onClick={() => {
-                  setShowDetailsModal(false);
-                  setSelectedContractId(null);
-                }}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+          {/* Details Modal */}
+          {showDetailsModal && selectedContract && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-gray-900">Détails du contrat de maintenance</h2>
+                  <button
+                    onClick={() => {
+                      setShowDetailsModal(false);
+                      setSelectedContractId(null);
+                    }}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="p-6">
+                  <MaintenanceCard
+                    contract={selectedContract}
+                    onAddIntervention={(id) => {
+                      setShowDetailsModal(false);
+                      setSelectedContractId(id);
+                      setShowInterventionForm(true);
+                    }}
+                    onEdit={(id) => {
+                      setShowDetailsModal(false);
+                      const contract = contracts.find(c => c.id === id);
+                      setEditingContract(contract);
+                      setShowContractForm(true);
+                    }}
+                    onDelete={(id) => {
+                      setShowDetailsModal(false);
+                      handleDeleteContract(id);
+                    }}
+                    onEditIntervention={(interventionId, contractId) => {
+                      setShowDetailsModal(false);
+                      handleEditIntervention(interventionId, contractId);
+                    }}
+                    onDeleteIntervention={handleDeleteIntervention}
+                    onTogglePriority={handleTogglePriority}
+                    onRefresh={refetch}
+                  />
+                </div>
+              </div>
             </div>
-            <div className="p-6">
-              <MaintenanceCard
-                contract={selectedContract}
-                onAddIntervention={(id) => {
-                  setShowDetailsModal(false);
-                  setSelectedContractId(id);
-                  setShowInterventionForm(true);
-                }}
-                onEdit={(id) => {
-                  setShowDetailsModal(false);
-                  const contract = contracts.find(c => c.id === id);
-                  setEditingContract(contract);
-                  setShowContractForm(true);
-                }}
-                onDelete={(id) => {
-                  setShowDetailsModal(false);
-                  handleDeleteContract(id);
-                }}
-                onEditIntervention={(interventionId, contractId) => {
-                  setShowDetailsModal(false);
-                  handleEditIntervention(interventionId, contractId);
-                }}
-                onDeleteIntervention={handleDeleteIntervention}
-                onTogglePriority={handleTogglePriority}
-                onRefresh={refetch}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+          )}
         </>
       )}
     </div>

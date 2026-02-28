@@ -50,11 +50,10 @@ export function CallNoteCard({ note, onToggleComplete, onDelete, onEdit }: CallN
 
   return (
     <div
-      className={`relative p-4 rounded-lg border-2 shadow-sm transition-all ${
-        note.is_completed
+      className={`relative p-4 rounded-lg border-2 shadow-sm transition-all ${note.is_completed
           ? 'bg-gray-100 border-gray-300 opacity-60'
           : priorityColors[note.priority]
-      }`}
+        }`}
     >
       {note.is_completed && (
         <div className="absolute inset-0 bg-gray-900/5 rounded-lg pointer-events-none" />
@@ -65,9 +64,8 @@ export function CallNoteCard({ note, onToggleComplete, onDelete, onEdit }: CallN
           <div className="flex-1 min-w-0">
             {note.client_name && (
               <h3
-                className={`font-semibold text-lg ${
-                  note.is_completed ? 'line-through text-gray-500' : 'text-gray-900'
-                }`}
+                className={`font-semibold text-lg ${note.is_completed ? 'line-through text-gray-500' : 'text-gray-900'
+                  }`}
               >
                 {note.client_name}
               </h3>
@@ -83,11 +81,11 @@ export function CallNoteCard({ note, onToggleComplete, onDelete, onEdit }: CallN
             )}
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 shrink-0">
             {!note.is_completed && (
               <button
                 onClick={() => onEdit(note)}
-                className="p-1.5 rounded-md hover:bg-white/50 transition-colors"
+                className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md hover:bg-white/50 transition-colors"
                 title="Modifier"
               >
                 <Edit2 className="w-4 h-4 text-gray-600" />
@@ -96,7 +94,7 @@ export function CallNoteCard({ note, onToggleComplete, onDelete, onEdit }: CallN
             <button
               onClick={handleDelete}
               disabled={isDeleting}
-              className="p-1.5 rounded-md hover:bg-white/50 transition-colors text-red-600"
+              className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md hover:bg-white/50 transition-colors text-red-600"
               title="Supprimer"
             >
               <Trash2 className="w-4 h-4" />
@@ -123,13 +121,12 @@ export function CallNoteCard({ note, onToggleComplete, onDelete, onEdit }: CallN
           </span>
           {note.priority !== 'normal' && (
             <span
-              className={`text-xs font-medium px-2 py-0.5 rounded ${
-                note.priority === 'urgent'
+              className={`text-xs font-medium px-2 py-0.5 rounded ${note.priority === 'urgent'
                   ? 'bg-red-100 text-red-700'
                   : note.priority === 'high'
-                  ? 'bg-orange-100 text-orange-700'
-                  : 'bg-gray-100 text-gray-700'
-              }`}
+                    ? 'bg-orange-100 text-orange-700'
+                    : 'bg-gray-100 text-gray-700'
+                }`}
             >
               {priorityLabels[note.priority]}
             </span>
@@ -140,11 +137,10 @@ export function CallNoteCard({ note, onToggleComplete, onDelete, onEdit }: CallN
           <button
             onClick={handleToggle}
             disabled={isToggling}
-            className={`p-4 rounded-lg transition-all shadow-sm ${
-              note.is_completed
+            className={`p-4 rounded-lg transition-all shadow-sm ${note.is_completed
                 ? 'bg-gray-300 hover:bg-gray-400 text-gray-700'
                 : 'bg-green-500 hover:bg-green-600 text-white'
-            }`}
+              }`}
             title={note.is_completed ? 'Marquer comme à faire' : 'Marquer comme terminé'}
           >
             {note.is_completed ? <X className="w-8 h-8" /> : <Check className="w-8 h-8" />}
