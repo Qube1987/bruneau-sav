@@ -8,7 +8,7 @@ import { ReportForm } from './ReportForm';
 import { useSavRequests } from '../../hooks/useSavRequests';
 import { useBatteries } from '../../hooks/useBatteries';
 import { supabase } from '../../lib/supabase';
-import { LayoutGrid, List, Loader, AlertTriangle, Database, Receipt, CheckCircle, ArrowLeft } from 'lucide-react';
+import { LayoutGrid, List, Loader, AlertTriangle, Database, Receipt, ArrowLeft } from 'lucide-react';
 import { SavFilters as SavFiltersType } from '../../types';
 
 export const BillingList: React.FC = () => {
@@ -20,14 +20,14 @@ export const BillingList: React.FC = () => {
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [showInterventionForm, setShowInterventionForm] = useState(false);
   const [selectedSavId, setSelectedSavId] = useState<string | null>(null);
-  const [editingIntervention, setEditingIntervention] = useState(null);
-  const [editingSav, setEditingSav] = useState(null);
+  const [editingIntervention, setEditingIntervention] = useState<any>(null);
+  const [editingSav, setEditingSav] = useState<any>(null);
   const [showSavForm, setShowSavForm] = useState(false);
   const [showReportForm, setShowReportForm] = useState(false);
-  const [users, setUsers] = useState([]);
-  const [cities, setCities] = useState([]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [cities, setCities] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [extrabatData, setExtrabatData] = useState({});
+  const [extrabatData, setExtrabatData] = useState<any>({});
 
   const { requests, loading: requestsLoading, error, tablesExist, refetch } = useSavRequests(filters);
   const { saveInterventionBatteries } = useBatteries();
@@ -145,6 +145,24 @@ export const BillingList: React.FC = () => {
     }
   };
 
+  const triggerPushNotification = async (event: 'sav_cree' | 'sav_termine' | 'sav_reactive', sav: any) => {
+    try {
+      const assignedUser = users.find(u => u.id === sav.assigned_user_id);
+
+      await supabase.functions.invoke('send-push-notification', {
+        body: {
+          event,
+          sav_id: sav.id,
+          sav_numero: sav.id.substring(0, 8).toUpperCase(),
+          client_nom: sav.client_name,
+          assigned_user_email: assignedUser?.email
+        }
+      });
+    } catch (err) {
+      console.error('Error triggering push notification:', err);
+    }
+  };
+
   const handleMarkBilled = async (id: string) => {
     try {
       const { error } = await supabase
@@ -179,6 +197,12 @@ export const BillingList: React.FC = () => {
         .eq('id', id);
 
       if (error) throw error;
+
+      // Trigger push notification
+      const sav = requests.find(r => r.id === id);
+      if (sav) {
+        triggerPushNotification('sav_reactive', sav);
+      }
 
       refetch();
     } catch (err) {
@@ -398,8 +422,8 @@ export const BillingList: React.FC = () => {
             <button
               onClick={() => setViewMode('cards')}
               className={`p-2 rounded-md transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${viewMode === 'cards'
-                  ? 'bg-white shadow-sm text-gray-900'
-                  : 'text-gray-600 hover:text-primary-700'
+                ? 'bg-white shadow-sm text-gray-900'
+                : 'text-gray-600 hover:text-primary-700'
                 }`}
             >
               <LayoutGrid className="h-5 w-5 sm:h-4 sm:w-4" />
@@ -407,8 +431,8 @@ export const BillingList: React.FC = () => {
             <button
               onClick={() => setViewMode('table')}
               className={`p-2 rounded-md transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${viewMode === 'table'
-                  ? 'bg-white shadow-sm text-gray-900'
-                  : 'text-gray-600 hover:text-primary-700'
+                ? 'bg-white shadow-sm text-gray-900'
+                : 'text-gray-600 hover:text-primary-700'
                 }`}
             >
               <List className="h-5 w-5 sm:h-4 sm:w-4" />

@@ -33,11 +33,11 @@ export const SavList: React.FC = () => {
   const [showReportForm, setShowReportForm] = useState(false);
   const [selectedSavId, setSelectedSavId] = useState<string | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [editingIntervention, setEditingIntervention] = useState(null);
-  const [editingSav, setEditingSav] = useState(null);
+  const [editingIntervention, setEditingIntervention] = useState<any>(null);
+  const [editingSav, setEditingSav] = useState<any>(null);
   const [extrabatData, setExtrabatData] = useState<{ clientId?: number; ouvrageId?: number }>({});
-  const [users, setUsers] = useState([]);
-  const [cities, setCities] = useState([]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [cities, setCities] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
   const { sendSMS } = useSMS();
@@ -97,6 +97,18 @@ export const SavList: React.FC = () => {
     }
   }, [userProfile?.id]);
 
+  // Handle deep-linking from notifications (?id=...)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    if (id) {
+      setSelectedSavId(id);
+      setShowDetailsModal(true);
+      // Clear URL parameter
+      window.history.replaceState({}, '', '/');
+    }
+  }, []);
+
   // Toggle between "My SAV" and "All SAV"
   const toggleSavFilter = () => {
     if (showOnlyMySav) {
@@ -115,6 +127,24 @@ export const SavList: React.FC = () => {
         assigned_user_id: userProfile?.id
       }));
       setShowOnlyMySav(true);
+    }
+  };
+
+  const triggerPushNotification = async (event: 'sav_cree' | 'sav_termine' | 'sav_reactive', sav: any) => {
+    try {
+      const assignedUser = users.find(u => u.id === sav.assigned_user_id);
+
+      await supabase.functions.invoke('send-push-notification', {
+        body: {
+          event,
+          sav_id: sav.id,
+          sav_numero: sav.id.substring(0, 8).toUpperCase(), // Fallback as no sav_number found
+          client_nom: sav.client_name,
+          assigned_user_email: assignedUser?.email
+        }
+      });
+    } catch (err) {
+      console.error('Error triggering push notification:', err);
     }
   };
 
@@ -170,6 +200,11 @@ export const SavList: React.FC = () => {
         .single();
 
       if (error) throw error;
+
+      // Trigger push notification
+      if (newSav) {
+        triggerPushNotification('sav_cree', newSav);
+      }
 
       // 1. Send SMS to creator when SAV is created
       if (newSav && user?.id) {
@@ -571,6 +606,11 @@ export const SavList: React.FC = () => {
 
       if (error) throw error;
 
+      // Trigger push notification
+      if (completedSav) {
+        triggerPushNotification('sav_termine', completedSav);
+      }
+
       // 3. Send SMS to Quentin only when SAV is marked as completed
       if (completedSav) {
         const quentin = users.find(u =>
@@ -934,8 +974,8 @@ export const SavList: React.FC = () => {
             <button
               onClick={() => setViewMode('cards')}
               className={`p-2 rounded-md transition-colors ${viewMode === 'cards'
-                  ? 'bg-white shadow-sm text-gray-900'
-                  : 'text-gray-600 hover:text-primary-700'
+                ? 'bg-white shadow-sm text-gray-900'
+                : 'text-gray-600 hover:text-primary-700'
                 }`}
               title="Vue cartes"
             >
@@ -944,8 +984,8 @@ export const SavList: React.FC = () => {
             <button
               onClick={() => setViewMode('table')}
               className={`p-2 rounded-md transition-colors ${viewMode === 'table'
-                  ? 'bg-white shadow-sm text-gray-900'
-                  : 'text-gray-600 hover:text-primary-700'
+                ? 'bg-white shadow-sm text-gray-900'
+                : 'text-gray-600 hover:text-primary-700'
                 }`}
               title="Vue liste"
             >
@@ -954,8 +994,8 @@ export const SavList: React.FC = () => {
             <button
               onClick={() => setViewMode('map')}
               className={`p-2 rounded-md transition-colors ${viewMode === 'map'
-                  ? 'bg-white shadow-sm text-gray-900'
-                  : 'text-gray-600 hover:text-primary-700'
+                ? 'bg-white shadow-sm text-gray-900'
+                : 'text-gray-600 hover:text-primary-700'
                 }`}
               title="Vue carte"
             >
@@ -964,8 +1004,8 @@ export const SavList: React.FC = () => {
             <button
               onClick={() => setViewMode('dashboard')}
               className={`p-2 rounded-md transition-colors ${viewMode === 'dashboard'
-                  ? 'bg-white shadow-sm text-gray-900'
-                  : 'text-gray-600 hover:text-primary-700'
+                ? 'bg-white shadow-sm text-gray-900'
+                : 'text-gray-600 hover:text-primary-700'
                 }`}
               title="Tableau de bord"
             >

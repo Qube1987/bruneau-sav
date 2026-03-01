@@ -85,7 +85,7 @@ export interface SavFilters {
   system_type?: string;
   status?: string;
   urgent?: boolean;
-  sort?: 'requested_at' | 'client_name' | 'city_derived' | 'assigned_user_id';
+  sort?: 'requested_at' | 'client_name' | 'city_derived' | 'assigned_user_id' | 'resolved_at' | 'archived_at';
   order?: 'asc' | 'desc';
   billing_status?: 'to_bill' | 'billed';
 }

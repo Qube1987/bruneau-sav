@@ -2,8 +2,8 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-extrabat-api-key, x-extrabat-security",
 };
 
 console.log('Extrabat proxy function loaded - v1.1');
@@ -68,17 +68,17 @@ Deno.serve(async (req: Request) => {
       console.error('- EXTRABAT_SECURITY:', securityKey ? 'SET' : 'NOT SET')
       console.error('Please configure these secrets in your Supabase dashboard under Edge Functions > Secrets')
       return new Response(
-        JSON.stringify({ 
-          success: false, 
+        JSON.stringify({
+          success: false,
           error: 'Extrabat API credentials not configured in Supabase secrets. Please add EXTRABAT_API_KEY and EXTRABAT_SECURITY in your Supabase dashboard under Edge Functions > Secrets.',
           missingCredentials: {
             EXTRABAT_API_KEY: !apiKey,
             EXTRABAT_SECURITY: !securityKey
           }
         }),
-        { 
+        {
           status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       )
     }
@@ -524,7 +524,7 @@ Deno.serve(async (req: Request) => {
       const { endpoint, params, apiVersion = 'v2' } = requestBody
 
       let apiUrl = `https://api.extrabat.com/${apiVersion}/${endpoint}`
-      
+
       if (params) {
         const searchParams = new URLSearchParams()
         Object.entries(params).forEach(([key, value]) => {
@@ -559,14 +559,14 @@ Deno.serve(async (req: Request) => {
       if (!response.ok) {
         console.error('Extrabat API error:', response.status, responseData)
         return new Response(
-          JSON.stringify({ 
-            success: false, 
+          JSON.stringify({
+            success: false,
             error: `Extrabat API error: ${response.status} - ${responseText}`,
             status: response.status
           }),
-          { 
+          {
             status: response.status,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           }
         )
       }
@@ -574,12 +574,12 @@ Deno.serve(async (req: Request) => {
       console.log('Extrabat API success:', responseData)
 
       return new Response(
-        JSON.stringify({ 
-          success: true, 
+        JSON.stringify({
+          success: true,
           data: responseData
         }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       )
     }
@@ -688,14 +688,14 @@ Deno.serve(async (req: Request) => {
     if (!response.ok) {
       console.error('Extrabat API error:', response.status, responseData)
       return new Response(
-        JSON.stringify({ 
-          success: false, 
+        JSON.stringify({
+          success: false,
           error: `Extrabat API error: ${response.status} - ${responseText}`,
           status: response.status
         }),
-        { 
+        {
           status: response.status,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       )
     }
@@ -717,15 +717,15 @@ Deno.serve(async (req: Request) => {
 
   } catch (error) {
     console.error('Extrabat proxy error:', error)
-    
+
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      JSON.stringify({
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
       }),
-      { 
+      {
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     )
   }

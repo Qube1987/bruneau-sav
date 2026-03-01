@@ -1,6 +1,7 @@
 import React, { ReactNode, useState } from 'react';
 import { SMSSettings } from '../sav/SMSSettings';
 import { UserManagement } from '../users/UserManagement';
+import { PushSettings } from '../users/PushSettings';
 import { useAuth } from '../../hooks/useAuth';
 import { useLocation, Link } from 'react-router-dom';
 import {
@@ -13,7 +14,8 @@ import {
   Users,
   Wrench,
   AlertTriangle,
-  Phone
+  Phone,
+  Bell
 } from 'lucide-react';
 
 interface AppShellProps {
@@ -27,6 +29,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showSMSSettings, setShowSMSSettings] = useState(false);
   const [showUserManagement, setShowUserManagement] = useState(false);
+  const [showPushSettings, setShowPushSettings] = useState(false);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -60,8 +63,8 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
               <Link
                 to="/"
                 className={`px-2 lg:px-3 py-2 rounded-lg font-medium transition-colors flex items-center text-xs lg:text-sm whitespace-nowrap ${location.pathname === '/' || location.pathname === '/billing'
-                    ? 'bg-primary-100 text-primary-800'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  ? 'bg-primary-100 text-primary-800'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                   }`}
               >
                 <AlertTriangle className="h-3 w-3 lg:h-4 lg:w-4 mr-1" />
@@ -70,8 +73,8 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
               <Link
                 to="/maintenance"
                 className={`px-2 lg:px-3 py-2 rounded-lg font-medium transition-colors flex items-center text-xs lg:text-sm whitespace-nowrap ${location.pathname === '/maintenance'
-                    ? 'bg-primary-100 text-primary-800'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  ? 'bg-primary-100 text-primary-800'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                   }`}
               >
                 <Wrench className="h-3 w-3 lg:h-4 lg:w-4 mr-1" />
@@ -80,8 +83,8 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
               <Link
                 to="/callnotes"
                 className={`px-2 lg:px-3 py-2 rounded-lg font-medium transition-colors flex items-center text-xs lg:text-sm whitespace-nowrap ${location.pathname === '/callnotes'
-                    ? 'bg-primary-100 text-primary-800'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  ? 'bg-primary-100 text-primary-800'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                   }`}
               >
                 <Phone className="h-3 w-3 lg:h-4 lg:w-4 mr-1" />
@@ -129,6 +132,16 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                   </button>
                   <button
                     onClick={() => {
+                      setShowPushSettings(true);
+                      setUserMenuOpen(false);
+                    }}
+                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                  >
+                    <Bell className="mr-3 h-4 w-4" />
+                    Notifications push
+                  </button>
+                  <button
+                    onClick={() => {
                       signOut();
                       setUserMenuOpen(false);
                     }}
@@ -159,8 +172,8 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
               <Link
                 to="/"
                 className={`block px-3 py-3 rounded-md font-medium ${location.pathname === '/' || location.pathname === '/billing'
-                    ? 'bg-primary-100 text-primary-800'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  ? 'bg-primary-100 text-primary-800'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                   }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -170,8 +183,8 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
               <Link
                 to="/maintenance"
                 className={`block px-3 py-3 rounded-md font-medium ${location.pathname === '/maintenance'
-                    ? 'bg-primary-100 text-primary-800'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  ? 'bg-primary-100 text-primary-800'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                   }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -181,8 +194,8 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
               <Link
                 to="/callnotes"
                 className={`block px-3 py-3 rounded-md font-medium ${location.pathname === '/callnotes'
-                    ? 'bg-primary-100 text-primary-800'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  ? 'bg-primary-100 text-primary-800'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                   }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -202,6 +215,11 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
       {/* SMS Settings Modal */}
       {showSMSSettings && (
         <SMSSettings onClose={() => setShowSMSSettings(false)} />
+      )}
+
+      {/* Push Settings Modal */}
+      {showPushSettings && (
+        <PushSettings onClose={() => setShowPushSettings(false)} />
       )}
 
       {/* User Management Modal */}
