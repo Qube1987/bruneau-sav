@@ -87,6 +87,21 @@ serve(async (req) => {
       }
     })
 
+    const results = await Promise.allSettled(
+      subscriptions.map(async (sub) => {
+        // ...
+        try {
+          const result = await webpush.sendNotification(pushSubscription, notificationPayload)
+          console.log('Push sent successfully:', sub.user_email, result.statusCode)
+          return { endpoint: sub.endpoint, success: true }
+        } catch (err) {
+          console.error('Push error:', sub.user_email, err.statusCode, err.message, JSON.stringify(err))
+          // ...
+        }
+      })
+    )
+    console.log('All results:', JSON.stringify(results))
+
     // Envoi synchrone (on attend tous les envois)
     const results = await Promise.allSettled(
       subscriptions.map(async (sub) => {
