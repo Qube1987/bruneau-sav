@@ -14,9 +14,9 @@ export default defineConfig({
       injectRegister: 'auto',
       includeAssets: ['favicon.svg', 'icons/*.png'],
       manifest: {
-        name: 'Bruneau SAV',
+        name: 'SAV',
         short_name: 'SAV',
-        description: 'Gestion SAV Bruneau Protection',
+        description: 'SAV Bruneau Protection',
         theme_color: '#0a0f1e',
         background_color: '#0a0f1e',
         display: 'standalone',
