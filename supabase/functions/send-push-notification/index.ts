@@ -2,8 +2,6 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 import webpush from "npm:web-push"
 
-console.log('VAPID public key in use:', VAPID_PUBLIC_KEY?.substring(0, 20) + '...')
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -67,13 +65,13 @@ serve(async (req) => {
 
     if (event === 'sav_cree') {
       title = '🔧 Nouveau SAV créé'
-      body = `SAV #${sav_numero} — ${client_nom}`
+      body = `${client_nom}`
     } else if (event === 'sav_termine') {
       title = '✅ SAV terminé'
-      body = `SAV #${sav_numero} — ${client_nom} clôturé`
+      body = `${client_nom}`
     } else if (event === 'sav_reactive') {
       title = '🔄 SAV réactivé'
-      body = `SAV #${sav_numero} — ${client_nom} a été réouvert`
+      body = `${client_nom}`
     }
 
     const notificationPayload = JSON.stringify({
