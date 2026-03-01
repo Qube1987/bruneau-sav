@@ -20,7 +20,6 @@ serve(async (req) => {
       throw new Error('Missing event or sav_id')
     }
 
-    // Configuration VAPID
     const VAPID_SUBJECT = Deno.env.get('VAPID_SUBJECT') || 'mailto:quentin@bruneau27.com'
     const VAPID_PUBLIC_KEY = Deno.env.get('VAPID_PUBLIC_KEY')
     const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY')
@@ -31,13 +30,11 @@ serve(async (req) => {
 
     webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY)
 
-    // Initialisation Supabase Admin (pour lire les subscriptions de tous les users)
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Logique des destinataires
     const recipients = ['quentin@bruneau27.com']
     if ((event === 'sav_cree' || event === 'sav_reactive') && assigned_user_email) {
       if (!recipients.includes(assigned_user_email)) {
@@ -47,7 +44,6 @@ serve(async (req) => {
 
     console.log(`Sending push for event ${event} to:`, recipients)
 
-    // Récupérer les subscriptions pour ces emails
     const { data: subscriptions, error: subError } = await supabaseAdmin
       .from('push_subscriptions')
       .select('*')
@@ -56,12 +52,14 @@ serve(async (req) => {
     if (subError) throw subError
 
     if (!subscriptions || subscriptions.length === 0) {
+      console.log('No subscriptions found')
       return new Response(JSON.stringify({ success: true, message: 'No subscriptions found' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
-    // Préparation du contenu de la notification
+    console.log(`Found ${subscriptions.length} subscription(s)`)
+
     let title = ''
     let body = ''
 
@@ -82,27 +80,11 @@ serve(async (req) => {
       icon: '/icons/icon-192.png',
       badge: '/icons/icon-192.png',
       data: {
-        url: `/?id=${sav_id}`, // Permet d'ouvrir le SAV spécifique au clic
+        url: `/?id=${sav_id}`,
         sav_id
       }
     })
 
-    const results = await Promise.allSettled(
-      subscriptions.map(async (sub) => {
-        // ...
-        try {
-          const result = await webpush.sendNotification(pushSubscription, notificationPayload)
-          console.log('Push sent successfully:', sub.user_email, result.statusCode)
-          return { endpoint: sub.endpoint, success: true }
-        } catch (err) {
-          console.error('Push error:', sub.user_email, err.statusCode, err.message, JSON.stringify(err))
-          // ...
-        }
-      })
-    )
-    console.log('All results:', JSON.stringify(results))
-
-    // Envoi synchrone (on attend tous les envois)
     const results = await Promise.allSettled(
       subscriptions.map(async (sub) => {
         const pushSubscription = {
@@ -114,18 +96,21 @@ serve(async (req) => {
         }
 
         try {
-          await webpush.sendNotification(pushSubscription, notificationPayload)
+          const result = await webpush.sendNotification(pushSubscription, notificationPayload)
+          console.log('Push sent successfully:', sub.user_email, result.statusCode)
           return { endpoint: sub.endpoint, success: true }
         } catch (err) {
-          // Si le token est expiré (410), on le supprime de la base
+          console.error('Push error:', sub.user_email, err.statusCode, err.message, JSON.stringify(err))
           if (err.statusCode === 410 || err.statusCode === 404) {
-            console.log(`Archiving stale subscription for ${sub.user_email}:`, sub.endpoint)
+            console.log(`Removing stale subscription for ${sub.user_email}`)
             await supabaseAdmin.from('push_subscriptions').delete().eq('id', sub.id)
           }
           throw err
         }
       })
     )
+
+    console.log('All results:', JSON.stringify(results))
 
     return new Response(JSON.stringify({ success: true, results }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
