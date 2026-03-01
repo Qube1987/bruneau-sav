@@ -20,7 +20,7 @@ CREATE POLICY "Users manage own subscriptions" ON public.push_subscriptions
 -- Quentin peut voir toutes les subscriptions (pour envoyer les notifs globales)
 CREATE POLICY "Admin read all" ON public.push_subscriptions
   FOR SELECT USING (
-    (SELECT email FROM auth.users WHERE id = auth.uid()) = 'quentin@bruneau27.com'
+    (auth.jwt() ->> 'email') = 'quentin@bruneau27.com'
   );
 
 -- Index pour la performance des recherches par email
