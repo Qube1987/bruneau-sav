@@ -40,6 +40,8 @@ export function usePushNotifications() {
                 throw new Error('Clé publique VAPID manquante (VITE_VAPID_PUBLIC_KEY)');
             }
 
+            console.log('VD_PUBLIC_KEY?.substring(0, 20) + '...')v.VITE_VAPID_PUBLIC_KEY?.substring(0, 20) + '...')')
+
             const subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
                 applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
