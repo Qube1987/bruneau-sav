@@ -20,7 +20,7 @@ interface ExtrabatClient {
   telephones?: Array<{
     id: number;
     number: string;
-    type: string;
+    type: string | { id: number; libelle: string };
   }>;
   adresses?: Array<{
     id: number;
@@ -28,7 +28,7 @@ interface ExtrabatClient {
     codePostal: string;
     ville: string;
     pays: string;
-    type: string;
+    type: string | { id: number; libelle: string };
   }>;
   ouvrage?: Array<{
     id: number;
@@ -84,7 +84,7 @@ export const ClientSearch: React.FC<ClientSearchProps> = ({ onClientSelect }) =>
         body: {
           endpoint: 'clients',
           params: {
-            q: query,
+            nomraisonsociale: query,
             include: 'telephone,adresse,ouvrage'
           }
         }
@@ -316,7 +316,7 @@ export const ClientSearch: React.FC<ClientSearchProps> = ({ onClientSelect }) =>
                 <option value="">Aucun téléphone</option>
                 {selectedClient.telephones.map((tel, index) => (
                   <option key={index} value={tel.number}>
-                    {tel.number} ({tel.type?.libelle || 'Type inconnu'})
+                    {tel.number} ({typeof tel.type === 'object' ? tel.type.libelle : (tel.type || 'Type inconnu')})
                   </option>
                 ))}
               </select>
@@ -338,7 +338,7 @@ export const ClientSearch: React.FC<ClientSearchProps> = ({ onClientSelect }) =>
                 <option value="">Aucune adresse</option>
                 {selectedClient.adresses.map((addr, index) => (
                   <option key={index} value={`${addr.description}, ${addr.codePostal} ${addr.ville}`}>
-                    {addr.description}, {addr.codePostal} {addr.ville} ({addr.type?.libelle || 'Type inconnu'})
+                    {addr.description}, {addr.codePostal} {addr.ville} ({typeof addr.type === 'object' ? addr.type.libelle : (addr.type || 'Type inconnu')})
                   </option>
                 ))}
               </select>

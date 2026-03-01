@@ -30,7 +30,25 @@ const schema = yup.object({
   is_long_intervention: yup.boolean()
 });
 
-type FormData = yup.InferType<typeof schema>;
+type FormData = {
+  client_name: string;
+  site?: string;
+  client_email?: string;
+  phone?: string;
+  address?: string;
+  system_type: string;
+  system_brand?: string;
+  system_model?: string;
+  problem_desc: string;
+  problem_desc_reformule?: string;
+  observations?: string;
+  rapport_brut?: string;
+  rapport_reformule?: string;
+  assigned_user_id?: string;
+  urgent?: boolean;
+  is_quick_intervention?: boolean;
+  is_long_intervention?: boolean;
+};
 
 interface SavFormProps {
   request?: SavRequest;
@@ -61,7 +79,7 @@ export const SavForm: React.FC<SavFormProps> = ({
     formState: { errors },
     watch
   } = useForm<FormData>({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(schema) as any,
     defaultValues: request ? {
       client_name: request.client_name,
       site: request.site || '',
@@ -126,7 +144,8 @@ export const SavForm: React.FC<SavFormProps> = ({
   const clientName = watch('client_name');
   const systemType = watch('system_type');
   const phone = watch('phone');
-  const assignedUserId = watch('assigned_user_id');
+  // Unused but kept in props for parent compatibility if needed
+  // const assignedUserId = watch('assigned_user_id');
 
   const handleProblemDescReformulation = async () => {
     const currentProblemDesc = problemDesc || '';
@@ -267,8 +286,8 @@ export const SavForm: React.FC<SavFormProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center p-0 sm:p-4 z-50">
-      <div className="bg-white w-full h-full sm:h-auto sm:max-w-2xl sm:rounded-2xl shadow-xl flex flex-col">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center p-0 sm:p-4 z-50 overflow-y-auto pt-4 pb-4">
+      <div className="bg-white w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-2xl sm:rounded-2xl shadow-xl flex flex-col my-auto">
         <div className="sticky top-0 bg-white border-b border-gray-200 px-4 sm:px-6 py-4 sm:rounded-t-2xl z-10 shrink-0">
           <div className="flex items-center justify-between">
             <h2 className="text-lg sm:text-xl font-bold text-gray-900 truncate pr-4">
