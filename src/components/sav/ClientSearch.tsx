@@ -84,7 +84,7 @@ export const ClientSearch: React.FC<ClientSearchProps> = ({ onClientSelect }) =>
         body: {
           endpoint: 'clients',
           params: {
-            nomraisonsociale: query,
+            q: query,
             include: 'telephone,adresse,ouvrage'
           }
         }
