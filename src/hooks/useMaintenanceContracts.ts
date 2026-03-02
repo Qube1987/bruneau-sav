@@ -92,10 +92,21 @@ export const useMaintenanceContracts = (filters: MaintenanceFilters = {}) => {
                 };
               });
 
+              const { data: batteryData } = await supabase
+                .from('intervention_batteries')
+                .select(`
+                  *,
+                  battery_product:battery_products(*)
+                `)
+                .eq('intervention_id', intervention.id)
+                .eq('intervention_type', 'maintenance');
+
               return {
                 ...intervention,
+                technician_ids: techData?.map((t: any) => t.technician.id) || [],
                 technicians: techData?.map((t: any) => t.technician) || [],
-                photos: photosWithUrls
+                photos: photosWithUrls,
+                batteries: batteryData || []
               };
             })
           );
@@ -123,7 +134,7 @@ export const useMaintenanceContracts = (filters: MaintenanceFilters = {}) => {
 
         let comparison = 0;
 
-        if (sortField === 'created_at') {
+        if ((sortField as string) === 'created_at') {
           const aDate = new Date(a.created_at).getTime();
           const bDate = new Date(b.created_at).getTime();
           comparison = (aDate - bDate) * multiplier;
@@ -139,7 +150,7 @@ export const useMaintenanceContracts = (filters: MaintenanceFilters = {}) => {
           comparison = aUser.localeCompare(bUser) * multiplier;
         } else if (sortField === 'client_name') {
           // Default sorting logic for client_name
-          const statusOrder = { 'a_realiser': 0, 'prevue': 1, 'realisee': 2 };
+          const statusOrder: Record<string, number> = { 'a_realiser': 0, 'prevue': 1, 'realisee': 2 };
           const aStatusOrder = statusOrder[a.status] || 3;
           const bStatusOrder = statusOrder[b.status] || 3;
 

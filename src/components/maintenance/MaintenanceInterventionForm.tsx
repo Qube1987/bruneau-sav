@@ -14,7 +14,8 @@ const schema = yup.object({
   started_at: yup.string().required('La date de début est obligatoire'),
   ended_at: yup.string(),
   technician_ids: yup.array().of(yup.string().required()).default([]),
-  notes: yup.string()
+  notes: yup.string(),
+  has_battery_change: yup.boolean().default(false)
 });
 
 type FormData = yup.InferType<typeof schema>;
@@ -108,7 +109,8 @@ export const MaintenanceInterventionForm: React.FC<MaintenanceInterventionFormPr
         : (intervention?.completed_at
           ? formatDateTimeForInput(intervention.completed_at)
           : ''),
-      notes: intervention?.notes || ''
+      notes: intervention?.notes || '',
+      has_battery_change: intervention?.has_battery_change || false
     }
   });
 
@@ -141,7 +143,8 @@ export const MaintenanceInterventionForm: React.FC<MaintenanceInterventionFormPr
           : (intervention.completed_at
             ? formatDateTimeForInput(intervention.completed_at)
             : ''),
-        notes: intervention.notes || ''
+        notes: intervention.notes || '',
+        has_battery_change: intervention.has_battery_change || false
       });
       setSelectedTechnicians(
         intervention.technicians?.map(t => t.id) ||
@@ -153,7 +156,7 @@ export const MaintenanceInterventionForm: React.FC<MaintenanceInterventionFormPr
 
   const handleFormSubmit = (data: FormData) => {
     onSubmit({
-      ...data,
+      ...(data as any),
       technician_ids: selectedTechnicians,
       batteries: selectedBatteries
     });
@@ -169,8 +172,8 @@ export const MaintenanceInterventionForm: React.FC<MaintenanceInterventionFormPr
 
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center p-0 sm:p-4 z-50 overflow-y-auto pt-4 pb-4">
-      <div className="bg-white w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-lg sm:rounded-2xl shadow-xl flex flex-col my-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center p-0 sm:p-4 z-50 overflow-y-auto">
+      <div className="bg-white w-full min-h-0 sm:h-auto sm:max-h-[95vh] sm:max-w-lg sm:rounded-2xl shadow-xl flex flex-col">
         <div className="sticky top-0 bg-white border-b border-gray-200 px-4 sm:px-6 py-4 sm:rounded-t-2xl z-10 shrink-0">
           <div className="flex items-center justify-between">
             <h2 className="text-lg sm:text-xl font-bold text-gray-900 truncate pr-4">
@@ -255,8 +258,13 @@ export const MaintenanceInterventionForm: React.FC<MaintenanceInterventionFormPr
               {/* Battery Selector */}
               <div>
                 <BatterySelector
-                  selectedBatteries={selectedBatteries}
-                  onBatteriesChange={setSelectedBatteries}
+                  interventionId={intervention?.id}
+                  interventionType="maintenance"
+                  initialHasBatteryChange={watch('has_battery_change')}
+                  onBatteriesChange={(batteries, hasChange) => {
+                    setSelectedBatteries(batteries);
+                    setValue('has_battery_change', hasChange);
+                  }}
                 />
               </div>
 

@@ -110,7 +110,10 @@ export const useSavStatistics = () => {
         .from('sav_requests')
         .select(`
           *,
-          sav_interventions (*)
+          sav_interventions (
+            *,
+            technician_ids:sav_intervention_technicians(technician_id)
+          )
         `)
         .order('requested_at', { ascending: false });
 
@@ -214,28 +217,31 @@ export const useSavStatistics = () => {
         .forEach(sav => {
           if (sav.sav_interventions && sav.sav_interventions.length > 0) {
             sav.sav_interventions.forEach((intervention: any) => {
-              if (intervention.technician_id) {
-                const user = users?.find(u => u.id === intervention.technician_id);
-                const techName = user?.display_name || 'Non assigné';
+              if (intervention.technician_ids && intervention.technician_ids.length > 0) {
+                intervention.technician_ids.forEach((t: any) => {
+                  const techId = t.technician_id;
+                  const user = users?.find(u => u.id === techId);
+                  const techName = user?.display_name || 'Non assigné';
 
-                if (!technicianMap.has(intervention.technician_id)) {
-                  technicianMap.set(intervention.technician_id, {
-                    name: techName,
-                    savCount: 0,
-                    totalTime: 0
-                  });
-                }
+                  if (!technicianMap.has(techId)) {
+                    technicianMap.set(techId, {
+                      name: techName,
+                      savCount: 0,
+                      totalTime: 0
+                    });
+                  }
 
-                const techData = technicianMap.get(intervention.technician_id)!;
-                techData.savCount++;
+                  const techData = technicianMap.get(techId)!;
+                  techData.savCount++;
 
-                if (sav.requested_at && sav.resolved_at) {
-                  const resolutionTime = differenceInDays(
-                    new Date(sav.resolved_at),
-                    new Date(sav.requested_at)
-                  );
-                  techData.totalTime += Math.max(0, resolutionTime);
-                }
+                  if (sav.requested_at && sav.resolved_at) {
+                    const resolutionTime = differenceInDays(
+                      new Date(sav.resolved_at),
+                      new Date(sav.requested_at)
+                    );
+                    techData.totalTime += Math.max(0, resolutionTime);
+                  }
+                });
               }
             });
           }

@@ -73,8 +73,10 @@ export interface Intervention {
   created_at: string;
   technician?: User;
   technicians?: User[];
+  technician_ids?: string[];
   extrabat_intervention_id?: string;
   photos?: InterventionPhoto[];
+  batteries?: any[];
 }
 
 export interface SavFilters {
@@ -88,6 +90,9 @@ export interface SavFilters {
   sort?: 'requested_at' | 'client_name' | 'city_derived' | 'assigned_user_id' | 'resolved_at' | 'archived_at';
   order?: 'asc' | 'desc';
   billing_status?: 'to_bill' | 'billed';
+  priority?: boolean;
+  is_quick_intervention?: boolean;
+  is_long_intervention?: boolean;
 }
 
 export const SYSTEM_TYPES = {
@@ -154,8 +159,11 @@ export interface MaintenanceIntervention {
   created_at: string;
   technician?: User;
   technicians?: User[];
+  technician_ids?: string[];
   extrabat_intervention_id?: string;
   photos?: InterventionPhoto[];
+  batteries?: any[];
+  has_battery_change?: boolean;
 }
 
 export interface MaintenanceFilters {

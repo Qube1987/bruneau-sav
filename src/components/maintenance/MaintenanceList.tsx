@@ -10,7 +10,7 @@ import { useMaintenanceContracts } from '../../hooks/useMaintenanceContracts';
 import { useGeocoding } from '../../hooks/useGeocoding';
 import { supabase } from '../../lib/supabase';
 import { Plus, LayoutGrid, List, Loader, AlertTriangle, Database, RotateCcw, Map, RefreshCw, BarChart3 } from 'lucide-react';
-import { MaintenanceFilters as MaintenanceFiltersType } from '../../types';
+import { MaintenanceFilters as MaintenanceFiltersType, MaintenanceContract, MaintenanceIntervention, User } from '../../types';
 import { useExtrabat } from '../../hooks/useExtrabat';
 import { MapView } from '../common/MapView';
 import { useAuth } from '../../hooks/useAuth';
@@ -27,11 +27,11 @@ export const MaintenanceList: React.FC = () => {
   const [showInterventionForm, setShowInterventionForm] = useState(false);
   const [selectedContractId, setSelectedContractId] = useState<string | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [editingIntervention, setEditingIntervention] = useState(null);
-  const [editingContract, setEditingContract] = useState(null);
+  const [editingIntervention, setEditingIntervention] = useState<MaintenanceIntervention | null>(null);
+  const [editingContract, setEditingContract] = useState<MaintenanceContract | null>(null);
   const [extrabatData, setExtrabatData] = useState<{ clientId?: number; ouvrageId?: number }>({});
-  const [users, setUsers] = useState([]);
-  const [cities, setCities] = useState([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [cities, setCities] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const { createAppointment, updateAppointment, deleteAppointment } = useExtrabat();
   const { geocodeAddress } = useGeocoding();
@@ -45,7 +45,7 @@ export const MaintenanceList: React.FC = () => {
         // Fetch users
         const { data: usersData } = await supabase
           .from('users')
-          .select('id, display_name, email, phone, role, extrabat_code')
+          .select('id, display_name, email, phone, role, extrabat_code, created_at')
           .order('display_name');
 
         if (usersData) setUsers(usersData);
@@ -154,9 +154,9 @@ export const MaintenanceList: React.FC = () => {
       };
 
       // Geocode address if it changed
-      let latitude = editingContract.latitude;
-      let longitude = editingContract.longitude;
-      if (data.address && data.address !== editingContract.address) {
+      let latitude = editingContract?.latitude;
+      let longitude = editingContract?.longitude;
+      if (data.address && data.address !== editingContract?.address) {
         const geocoded = await geocodeAddress(data.address);
         if (geocoded) {
           latitude = geocoded.lat;
@@ -173,7 +173,7 @@ export const MaintenanceList: React.FC = () => {
           latitude,
           longitude
         })
-        .eq('id', editingContract.id);
+        .eq('id', editingContract?.id);
 
       if (error) throw error;
 
@@ -204,7 +204,8 @@ export const MaintenanceList: React.FC = () => {
             completed_at: data.ended_at || null,
             technician_id: data.technician_ids?.[0] || null,
             notes: data.notes || null,
-            status: data.ended_at ? 'realisee' : 'prevue'
+            status: data.ended_at ? 'realisee' : 'prevue',
+            has_battery_change: data.has_battery_change || false
           })
           .eq('id', editingIntervention.id);
 
@@ -307,7 +308,8 @@ export const MaintenanceList: React.FC = () => {
             completed_at: data.ended_at || null,
             technician_id: data.technician_ids?.[0] || null,
             notes: data.notes || null,
-            status: data.ended_at ? 'realisee' : 'prevue'
+            status: data.ended_at ? 'realisee' : 'prevue',
+            has_battery_change: data.has_battery_change || false
           })
           .select()
           .single();
@@ -686,8 +688,8 @@ export const MaintenanceList: React.FC = () => {
             <button
               onClick={() => setViewMode('cards')}
               className={`p-2 rounded-md transition-colors ${viewMode === 'cards'
-                  ? 'bg-white shadow-sm text-gray-900'
-                  : 'text-gray-600 hover:text-primary-700'
+                ? 'bg-white shadow-sm text-gray-900'
+                : 'text-gray-600 hover:text-primary-700'
                 }`}
               title="Vue cartes"
             >
@@ -696,8 +698,8 @@ export const MaintenanceList: React.FC = () => {
             <button
               onClick={() => setViewMode('table')}
               className={`p-2 rounded-md transition-colors ${viewMode === 'table'
-                  ? 'bg-white shadow-sm text-gray-900'
-                  : 'text-gray-600 hover:text-primary-700'
+                ? 'bg-white shadow-sm text-gray-900'
+                : 'text-gray-600 hover:text-primary-700'
                 }`}
               title="Vue liste"
             >
@@ -706,8 +708,8 @@ export const MaintenanceList: React.FC = () => {
             <button
               onClick={() => setViewMode('map')}
               className={`p-2 rounded-md transition-colors ${viewMode === 'map'
-                  ? 'bg-white shadow-sm text-gray-900'
-                  : 'text-gray-600 hover:text-primary-700'
+                ? 'bg-white shadow-sm text-gray-900'
+                : 'text-gray-600 hover:text-primary-700'
                 }`}
               title="Vue carte"
             >
@@ -897,10 +899,11 @@ export const MaintenanceList: React.FC = () => {
                       setSelectedContractId(id);
                       setShowInterventionForm(true);
                     }}
+                    onMarkCompleted={handleMarkCompleted}
                     onEdit={(id) => {
                       setShowDetailsModal(false);
                       const contract = contracts.find(c => c.id === id);
-                      setEditingContract(contract);
+                      setEditingContract(contract || null);
                       setShowContractForm(true);
                     }}
                     onDelete={(id) => {
@@ -913,6 +916,8 @@ export const MaintenanceList: React.FC = () => {
                     }}
                     onDeleteIntervention={handleDeleteIntervention}
                     onTogglePriority={handleTogglePriority}
+                    onToggleInvoiceSent={handleToggleInvoiceSent}
+                    onToggleInvoicePaid={handleToggleInvoicePaid}
                     onRefresh={refetch}
                   />
                 </div>

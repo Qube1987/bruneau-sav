@@ -438,6 +438,12 @@ export const SavList: React.FC = () => {
           if (batteryError) throw batteryError;
         }
 
+        // Update has_battery_change flag in the intervention
+        await supabase
+          .from('sav_interventions')
+          .update({ has_battery_change: data.has_battery_change || false })
+          .eq('id', editingIntervention.id);
+
         // Update Extrabat appointment if exists
         if (editingIntervention.extrabat_intervention_id && data.technician_ids && data.technician_ids.length > 0) {
           const selectedSav = requests.find(r => r.id === selectedSavId);
@@ -480,7 +486,8 @@ export const SavList: React.FC = () => {
             technician_id: data.technician_ids?.[0] || null,
             notes: data.notes || null,
             rapport_brut: data.rapport_brut || null,
-            rapport_reformule: data.rapport_reformule || null
+            rapport_reformule: data.rapport_reformule || null,
+            has_battery_change: data.has_battery_change || false
           })
           .select()
           .single();

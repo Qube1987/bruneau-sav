@@ -13,12 +13,13 @@ import { supabase } from '../../lib/supabase';
 
 const schema = yup.object({
   started_at: yup.string().required('La date de début est obligatoire'),
-  ended_at: yup.string(),
+  ended_at: yup.string().nullable(),
   technician_ids: yup.array().of(yup.string().required()).default([]),
-  notes: yup.string(),
-  rapport_brut: yup.string(),
-  rapport_reformule: yup.string()
-});
+  notes: yup.string().nullable(),
+  rapport_brut: yup.string().nullable(),
+  rapport_reformule: yup.string().nullable(),
+  has_battery_change: yup.boolean().default(false)
+}).required();
 
 type FormData = yup.InferType<typeof schema>;
 
@@ -112,7 +113,8 @@ export const InterventionForm: React.FC<InterventionFormProps> = ({
         : '',
       notes: intervention?.notes || '',
       rapport_brut: intervention?.rapport_brut || '',
-      rapport_reformule: intervention?.rapport_reformule || ''
+      rapport_reformule: intervention?.rapport_reformule || '',
+      has_battery_change: intervention?.has_battery_change || false
     }
   });
 
@@ -147,7 +149,8 @@ export const InterventionForm: React.FC<InterventionFormProps> = ({
           : '',
         notes: intervention.notes || '',
         rapport_brut: rapportBrutValue,
-        rapport_reformule: rapportReformuleValue
+        rapport_reformule: rapportReformuleValue,
+        has_battery_change: intervention.has_battery_change || false
       });
       setSelectedTechnicians(
         intervention.technicians?.map(t => t.id) ||
@@ -176,7 +179,7 @@ export const InterventionForm: React.FC<InterventionFormProps> = ({
     console.log('rapport_brut:', rapportBrut);
     console.log('rapport_reformule:', rapportReformule);
     onSubmit({
-      ...data,
+      ...(data as any),
       technician_ids: selectedTechnicians,
       rapport_brut: rapportBrut,
       rapport_reformule: rapportReformule,
@@ -193,8 +196,8 @@ export const InterventionForm: React.FC<InterventionFormProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center p-0 sm:p-4 z-50 overflow-y-auto pt-4 pb-4">
-      <div className="bg-white w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-3xl sm:rounded-2xl shadow-xl flex flex-col my-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center p-0 sm:p-4 z-50 overflow-y-auto">
+      <div className="bg-white w-full min-h-0 sm:h-auto sm:max-h-[95vh] sm:max-w-3xl sm:rounded-2xl shadow-xl flex flex-col">
         <div className="sticky top-0 bg-white border-b border-gray-200 px-4 sm:px-6 py-4 sm:rounded-t-2xl z-10 shrink-0">
           <div className="flex items-center justify-between">
             <h2 className="text-lg sm:text-xl font-bold text-gray-900 pr-4">
@@ -246,7 +249,7 @@ export const InterventionForm: React.FC<InterventionFormProps> = ({
           <div className="space-y-6">
             <TimeSelector
               label="Date et heure de début"
-              value={watch('started_at')}
+              value={watch('started_at') || ''}
               onChange={(value) => setValue('started_at', value)}
               required
               error={errors.started_at?.message}
@@ -344,8 +347,13 @@ export const InterventionForm: React.FC<InterventionFormProps> = ({
           {/* Battery Selector */}
           <div className="border-t border-gray-200 pt-6">
             <BatterySelector
-              selectedBatteries={selectedBatteries}
-              onBatteriesChange={setSelectedBatteries}
+              interventionId={intervention?.id}
+              interventionType="sav"
+              initialHasBatteryChange={watch('has_battery_change')}
+              onBatteriesChange={(batteries, hasChange) => {
+                setSelectedBatteries(batteries);
+                setValue('has_battery_change', hasChange);
+              }}
             />
           </div>
 

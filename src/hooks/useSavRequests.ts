@@ -80,7 +80,7 @@ export const useSavRequests = (filters: SavFilters = {}) => {
         query = query.eq('urgent', filters.urgent);
       }
       if (filters.billing_status) {
-        if (filters.billing_status === 'all') {
+        if ((filters.billing_status as any) === 'all') {
           // Show both to_bill (terminee) and billed (archivee) SAVs
           query = query.in('status', ['terminee', 'archivee']);
         } else {
@@ -92,6 +92,16 @@ export const useSavRequests = (filters: SavFilters = {}) => {
             query = query.eq('status', 'terminee');
           }
         }
+      }
+
+      if (filters.priority !== undefined) {
+        query = query.eq('priority', filters.priority);
+      }
+      if (filters.is_quick_intervention !== undefined) {
+        query = query.eq('is_quick_intervention', filters.is_quick_intervention);
+      }
+      if (filters.is_long_intervention !== undefined) {
+        query = query.eq('is_long_intervention', filters.is_long_intervention);
       }
 
       // Apply basic sorting first
@@ -155,10 +165,21 @@ export const useSavRequests = (filters: SavFilters = {}) => {
               };
             });
 
+            const { data: batteryData } = await supabase
+              .from('intervention_batteries')
+              .select(`
+                *,
+                battery_product:battery_products(*)
+              `)
+              .eq('intervention_id', intervention.id)
+              .eq('intervention_type', 'sav');
+
             return {
               ...intervention,
+              technician_ids: techData?.map((t: any) => t.technician.id) || [],
               technicians: techData?.map((t: any) => t.technician) || [],
-              photos: photosWithUrls
+              photos: photosWithUrls,
+              batteries: batteryData || []
             };
           })
         );
@@ -171,7 +192,7 @@ export const useSavRequests = (filters: SavFilters = {}) => {
       }));
 
       // Apply custom sorting logic in JavaScript
-      const sortedData = processedData.sort((a, b) => {
+      const sortedData = processedData.sort((a: any, b: any) => {
         // First priority: Priority flag
         if (a.priority && !b.priority) return -1;
         if (!a.priority && b.priority) return 1;
@@ -234,7 +255,10 @@ export const useSavRequests = (filters: SavFilters = {}) => {
     filters.urgent,
     filters.billing_status,
     filters.sort,
-    filters.order
+    filters.order,
+    filters.priority,
+    filters.is_quick_intervention,
+    filters.is_long_intervention
   ]);
 
   const refetch = () => {

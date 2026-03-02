@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, User, MapPin, Phone, AlertTriangle, CheckCircle, CreditCard as Edit, Calendar, FileText, Trash2, CreditCard as Edit3, X, Battery, Shield, Camera, Key, Flame, MessageCircle, Settings, Euro, CheckSquare, Square, Building2, Users, Landmark, Package, MessageSquare } from 'lucide-react';
+import { Clock, User, MapPin, Phone, AlertTriangle, CreditCard as Edit, Calendar, Trash2, CreditCard as Edit3, Battery, Shield, Camera, Key, Flame, MessageCircle, Settings, Euro, CheckSquare, Square, Building2, Users, Landmark, Package, MessageSquare } from 'lucide-react';
 import { MaintenanceContract, BILLING_MODE_LABELS, CLIENT_TYPE_LABELS } from '../../types';
 import { useAuth } from '../../hooks/useAuth';
 import { PhotoSelector } from '../common/PhotoSelector';
@@ -16,6 +16,7 @@ interface MaintenanceCardProps {
   onRefresh?: () => void;
   onToggleInvoiceSent?: (id: string) => void;
   onToggleInvoicePaid?: (id: string) => void;
+  onTogglePriority?: (id: string) => void;
 }
 
 const getStatusColor = (status: string) => {
@@ -85,7 +86,8 @@ export const MaintenanceCard: React.FC<MaintenanceCardProps> = ({
   onDeleteIntervention,
   onRefresh,
   onToggleInvoiceSent,
-  onToggleInvoicePaid
+  onToggleInvoicePaid,
+  onTogglePriority
 }) => {
   const { canAccessBillingInfo } = useAuth();
   const [isSendingSMS, setIsSendingSMS] = React.useState(false);
@@ -168,12 +170,18 @@ export const MaintenanceCard: React.FC<MaintenanceCardProps> = ({
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center space-x-3">
-            <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(contract.status)}`}>
-              {getStatusLabel(contract.status)}
-            </span>
-            {contract.priority && (
-              <AlertTriangle className="h-5 w-5 text-red-500" />
-            )}
+            <button
+              onClick={() => onTogglePriority?.(contract.id)}
+              className="px-3 py-1 rounded-full text-sm font-medium border flex items-center space-x-2 transition-colors hover:opacity-80"
+              title={contract.priority ? "Retirer la priorité" : "Marquer comme prioritaire"}
+            >
+              <span className={getStatusColor(contract.status)}>
+                {getStatusLabel(contract.status)}
+              </span>
+              {contract.priority && (
+                <AlertTriangle className="h-4 w-4 text-red-500" />
+              )}
+            </button>
           </div>
           <div className="flex items-center space-x-1">
             <button
@@ -196,7 +204,7 @@ export const MaintenanceCard: React.FC<MaintenanceCardProps> = ({
         {/* Client Info */}
         <div className="space-y-3 mb-4">
           <h3 className="text-lg font-semibold text-gray-900">{contract.client_name}</h3>
-          
+
           {contract.site && (
             <div className="flex items-center text-gray-600">
               <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
@@ -251,13 +259,13 @@ export const MaintenanceCard: React.FC<MaintenanceCardProps> = ({
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-700">Système:</span>
             <div className="flex items-center">
-              {React.createElement(getSystemTypeIcon(contract.system_type), { 
-                className: "h-4 w-4 mr-2 text-primary-600" 
+              {React.createElement(getSystemTypeIcon(contract.system_type), {
+                className: "h-4 w-4 mr-2 text-primary-600"
               })}
               <span className="text-sm text-gray-900">{getSystemTypeLabel(contract.system_type)}</span>
             </div>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-700">Batteries installées:</span>
             <div className="flex items-center">
@@ -369,82 +377,81 @@ export const MaintenanceCard: React.FC<MaintenanceCardProps> = ({
             </h4>
             <div className="space-y-3">
               {contract.interventions.map((intervention) => {
-                const interventionDate = new Date(intervention.started_at || intervention.scheduled_at);
+                const interventionDate = new Date(intervention.started_at || intervention.scheduled_at || new Date());
                 const interventionYear = interventionDate.getFullYear();
                 const currentYear = new Date().getFullYear();
                 const isCurrentYear = interventionYear === currentYear;
 
                 return (
-                <div key={intervention.id} className="bg-gray-50 p-3 rounded-lg relative border border-gray-200">
-                  <div className="absolute top-2 right-2">
-                    <span className={`px-2 py-1 rounded-md text-xs font-bold ${
-                      isCurrentYear
+                  <div key={intervention.id} className="bg-gray-50 p-3 rounded-lg relative border border-gray-200">
+                    <div className="absolute top-2 right-2">
+                      <span className={`px-2 py-1 rounded-md text-xs font-bold ${isCurrentYear
                         ? 'bg-green-600 text-white'
                         : 'bg-gray-400 text-white'
-                    }`}>
-                      {interventionYear}
-                    </span>
-                  </div>
-                  <div className="mb-3 pr-16">
-                    <div className="flex items-center text-sm text-gray-600 mb-1">
-                      <Calendar className="h-4 w-4 mr-1" />
-                      {(intervention.started_at || intervention.scheduled_at) &&
-                        formatDate(intervention.started_at || intervention.scheduled_at)}
-                      {(intervention.ended_at || intervention.completed_at) && (
-                        <span className="ml-2">
-                          → {formatDate(intervention.ended_at || intervention.completed_at)}
-                        </span>
+                        }`}>
+                        {interventionYear}
+                      </span>
+                    </div>
+                    <div className="mb-3 pr-16">
+                      <div className="flex items-center text-sm text-gray-600 mb-1">
+                        <Calendar className="h-4 w-4 mr-1" />
+                        {(intervention.started_at || intervention.scheduled_at) &&
+                          formatDate(intervention.started_at || intervention.scheduled_at)}
+                        {(intervention.ended_at || intervention.completed_at) && (
+                          <span className="ml-2">
+                            → {formatDate(intervention.ended_at || intervention.completed_at)}
+                          </span>
+                        )}
+                      </div>
+                      {(intervention.technicians && intervention.technicians.length > 0) ? (
+                        <div className="flex items-center text-sm text-gray-600 mb-1">
+                          <User className="h-4 w-4 mr-1" />
+                          {intervention.technicians.map((tech: any) => tech.display_name || tech.email).join(', ')}
+                        </div>
+                      ) : intervention.technician && (
+                        <div className="flex items-center text-sm text-gray-600 mb-1">
+                          <User className="h-4 w-4 mr-1" />
+                          {intervention.technician.display_name || intervention.technician.email}
+                        </div>
                       )}
                     </div>
-                    {(intervention.technicians && intervention.technicians.length > 0) ? (
-                      <div className="flex items-center text-sm text-gray-600 mb-1">
-                        <User className="h-4 w-4 mr-1" />
-                        {intervention.technicians.map((tech: any) => tech.display_name || tech.email).join(', ')}
-                      </div>
-                    ) : intervention.technician && (
-                      <div className="flex items-center text-sm text-gray-600 mb-1">
-                        <User className="h-4 w-4 mr-1" />
-                        {intervention.technician.display_name || intervention.technician.email}
-                      </div>
-                    )}
-                  </div>
-                  {intervention.photos && intervention.photos.length > 0 && (
-                    <PhotoSelector
-                      photos={intervention.photos}
-                      onPhotosUpdate={onRefresh}
-                    />
-                  )}
-                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-200">
-                    <button
-                      onClick={handleOpenKizeo}
-                      className="p-2.5 rounded-lg transition-colors flex items-center justify-center flex-shrink-0"
-                      style={{ backgroundColor: '#55C96B' }}
-                      title="Ouvrir dans Kizeo Forms"
-                    >
-                      <img
-                        src="/logokizeo.png"
-                        alt="Kizeo"
-                        className="h-5 w-5"
+                    {intervention.photos && intervention.photos.length > 0 && (
+                      <PhotoSelector
+                        photos={intervention.photos}
+                        onPhotosUpdate={onRefresh}
                       />
-                    </button>
-                    <button
-                      onClick={() => onEditIntervention(intervention.id, contract.id)}
-                      className="btn-ghost text-slate-600 hover:bg-slate-50 btn-sm"
-                      title="Modifier l'intervention"
-                    >
-                      <Edit3 className="h-3 w-3" />
-                      Modifier
-                    </button>
-                    <button
-                      onClick={() => handleDeleteIntervention(intervention.id)}
-                      className="btn-ghost text-red-600 hover:bg-red-50 btn-sm"
-                      title="Supprimer l'intervention"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                      Supprimer
-                    </button>
+                    )}
+                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-200">
+                      <button
+                        onClick={handleOpenKizeo}
+                        className="p-2.5 rounded-lg transition-colors flex items-center justify-center flex-shrink-0"
+                        style={{ backgroundColor: '#55C96B' }}
+                        title="Ouvrir dans Kizeo Forms"
+                      >
+                        <img
+                          src="/logokizeo.png"
+                          alt="Kizeo"
+                          className="h-5 w-5"
+                        />
+                      </button>
+                      <button
+                        onClick={() => onEditIntervention(intervention.id, contract.id)}
+                        className="btn-ghost text-slate-600 hover:bg-slate-50 btn-sm"
+                        title="Modifier l'intervention"
+                      >
+                        <Edit3 className="h-3 w-3" />
+                        Modifier
+                      </button>
+                      <button
+                        onClick={() => handleDeleteIntervention(intervention.id)}
+                        className="btn-ghost text-red-600 hover:bg-red-50 btn-sm"
+                        title="Supprimer l'intervention"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                        Supprimer
+                      </button>
+                    </div>
                   </div>
-                </div>
                 );
               })}
             </div>
