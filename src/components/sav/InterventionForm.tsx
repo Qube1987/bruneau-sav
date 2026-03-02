@@ -193,8 +193,8 @@ export const InterventionForm: React.FC<InterventionFormProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center p-0 sm:p-4 z-50">
-      <div className="bg-white w-full h-full sm:h-auto sm:max-w-3xl sm:rounded-2xl shadow-xl flex flex-col">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center p-0 sm:p-4 z-50 overflow-y-auto pt-4 pb-4">
+      <div className="bg-white w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-3xl sm:rounded-2xl shadow-xl flex flex-col my-auto">
         <div className="sticky top-0 bg-white border-b border-gray-200 px-4 sm:px-6 py-4 sm:rounded-t-2xl z-10 shrink-0">
           <div className="flex items-center justify-between">
             <h2 className="text-lg sm:text-xl font-bold text-gray-900 pr-4">
