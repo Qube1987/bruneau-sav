@@ -51,10 +51,14 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                 )}
               </button>
               <div className="flex items-center min-w-0">
-                <div className="flex-shrink-0">
-                  <img src="/sav-android-chrome-512x512_(1).png" alt="SAV Icon" className="h-8 w-8 mr-2 sm:mr-3 rounded-lg" />
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <img
+                    src="/BRUNEAU_PROTECTION_LOGO_QUADRI.png"
+                    alt="Bruneau Protection"
+                    className="h-8 w-auto"
+                  />
+                  <span className="text-xl font-bold text-primary-900 hidden sm:block">SAV</span>
                 </div>
-                <h1 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 truncate">Gestion SAV</h1>
               </div>
             </div>
 
