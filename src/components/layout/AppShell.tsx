@@ -107,108 +107,110 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
               </Link>
             </div>
 
-            {/* Bell button (notifications push) */}
-            <button
-              onClick={() => setShowPushSettings(true)}
-              className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex-shrink-0"
-              title="Notifications Push"
-            >
-              <Bell className="h-5 w-5 text-gray-700" />
-            </button>
-
-            {/* User menu */}
-            <div className="relative flex-shrink-0" ref={dropdownRef}>
+            {/* Right side: bell + user menu */}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {/* Bell button (notifications push) */}
               <button
-                type="button"
-                className="flex items-center gap-2 p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                onClick={() => setUserMenuOpen(!userMenuOpen)}
-                title="Menu utilisateur"
+                onClick={() => setShowPushSettings(true)}
+                className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                title="Notifications Push"
               >
-                <User className="h-5 w-5 text-gray-700" />
-                <ChevronDown className={`h-4 w-4 text-gray-700 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
+                <Bell className="h-5 w-5 text-gray-700" />
               </button>
 
-              {userMenuOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                  <div className="px-4 py-3 border-b border-gray-200">
-                    <p className="text-sm text-gray-900 font-medium truncate">{user?.email}</p>
-                  </div>
-                  <button
-                    onClick={() => {
-                      setShowSMSSettings(true);
-                      setUserMenuOpen(false);
-                    }}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left"
-                  >
-                    <MessageSquare className="h-4 w-4" />
-                    Configuration SMS
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowUserManagement(true);
-                      setUserMenuOpen(false);
-                    }}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left"
-                  >
-                    <Users className="h-4 w-4" />
-                    Gestion utilisateurs
-                  </button>
-                  <button
-                    onClick={() => {
-                      signOut();
-                      setUserMenuOpen(false);
-                    }}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Déconnexion
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+              {/* User menu */}
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  type="button"
+                  className="flex items-center gap-2 p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  title="Menu utilisateur"
+                >
+                  <User className="h-5 w-5 text-gray-700" />
+                  <ChevronDown className={`h-4 w-4 text-gray-700 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
 
-        {/* Mobile Navigation */}
-        {mobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 bg-white relative z-50 overflow-hidden">
-            <div className="px-4 py-2 space-y-1">
-              <Link
-                to="/"
-                className={`block px-3 py-3 rounded-md font-medium ${location.pathname === '/' || location.pathname === '/billing'
-                  ? 'bg-primary-100 text-primary-800'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                  }`}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <AlertTriangle className="h-4 w-4 inline mr-2" />
-                SAV
-              </Link>
-              <Link
-                to="/maintenance"
-                className={`block px-3 py-3 rounded-md font-medium ${location.pathname === '/maintenance'
-                  ? 'bg-primary-100 text-primary-800'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                  }`}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <Wrench className="h-4 w-4 inline mr-2" />
-                Maintenance
-              </Link>
-              <Link
-                to="/callnotes"
-                className={`block px-3 py-3 rounded-md font-medium ${location.pathname === '/callnotes'
-                  ? 'bg-primary-100 text-primary-800'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                  }`}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <Phone className="h-4 w-4 inline mr-2" />
-                Appels & Rappels
-              </Link>
+                {userMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                    <div className="px-4 py-3 border-b border-gray-200">
+                      <p className="text-sm text-gray-900 font-medium truncate">{user?.email}</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setShowSMSSettings(true);
+                        setUserMenuOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left"
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                      Configuration SMS
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowUserManagement(true);
+                        setUserMenuOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left"
+                    >
+                      <Users className="h-4 w-4" />
+                      Gestion utilisateurs
+                    </button>
+                    <button
+                      onClick={() => {
+                        signOut();
+                        setUserMenuOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Déconnexion
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        )}
+
+          {/* Mobile Navigation */}
+          {mobileMenuOpen && (
+            <div className="md:hidden border-t border-gray-200 bg-white relative z-50 overflow-hidden">
+              <div className="px-4 py-2 space-y-1">
+                <Link
+                  to="/"
+                  className={`block px-3 py-3 rounded-md font-medium ${location.pathname === '/' || location.pathname === '/billing'
+                    ? 'bg-primary-100 text-primary-800'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    }`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <AlertTriangle className="h-4 w-4 inline mr-2" />
+                  SAV
+                </Link>
+                <Link
+                  to="/maintenance"
+                  className={`block px-3 py-3 rounded-md font-medium ${location.pathname === '/maintenance'
+                    ? 'bg-primary-100 text-primary-800'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    }`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Wrench className="h-4 w-4 inline mr-2" />
+                  Maintenance
+                </Link>
+                <Link
+                  to="/callnotes"
+                  className={`block px-3 py-3 rounded-md font-medium ${location.pathname === '/callnotes'
+                    ? 'bg-primary-100 text-primary-800'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    }`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Phone className="h-4 w-4 inline mr-2" />
+                  Appels & Rappels
+                </Link>
+              </div>
+            </div>
+          )}
       </header>
 
       {/* Main content */}
