@@ -57,12 +57,12 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
   const [showSMSSettings, setShowSMSSettings] = useState(false);
   const [showUserManagement, setShowUserManagement] = useState(false);
   const [showPushSettings, setShowPushSettings] = useState(false);
-  const [pendingCallNotes, setPendingCallNotes] = useState(0);
-  const [newSavCount, setNewSavCount] = useState(0);
   const [showNotifPanel, setShowNotifPanel] = useState(false);
   const [callNotesList, setCallNotesList] = useState<CallNote[]>([]);
   const [newSavList, setNewSavList] = useState<SavNotification[]>([]);
   const [loadingNotifs, setLoadingNotifs] = useState(false);
+  const [notifClearedAt, setNotifClearedAt] = useState<string | null>(null);
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notifPanelRef = useRef<HTMLDivElement>(null);
 
@@ -79,26 +79,50 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const totalNotifCount = pendingCallNotes + newSavCount;
+  // Load user's notification preferences (cleared_at timestamp + dismissed IDs)
+  useEffect(() => {
+    if (!user?.id) return;
 
-  const fetchPendingCount = async () => {
-    try {
-      const [callNotesResult, savResult] = await Promise.all([
-        supabase
-          .from('call_notes')
-          .select('*', { count: 'exact', head: true })
-          .eq('is_completed', false),
-        supabase
-          .from('sav_requests')
-          .select('*', { count: 'exact', head: true })
-          .eq('status', 'nouvelle')
-      ]);
-      if (!callNotesResult.error) setPendingCallNotes(callNotesResult.count || 0);
-      if (!savResult.error) setNewSavCount(savResult.count || 0);
-    } catch (err) {
-      console.error('Error fetching pending counts:', err);
-    }
-  };
+    const loadReadState = async () => {
+      // Get the notifications_cleared_at from the users table (matched by email)
+      const { data: userData } = await supabase
+        .from('users')
+        .select('notifications_cleared_at')
+        .eq('email', user.email)
+        .maybeSingle();
+
+      if (userData?.notifications_cleared_at) {
+        setNotifClearedAt(userData.notifications_cleared_at);
+      }
+
+      // Get individually dismissed notification IDs
+      const { data: dismissals } = await supabase
+        .from('notification_dismissals')
+        .select('notification_type, notification_id')
+        .eq('user_id', user.id);
+
+      if (dismissals) {
+        setDismissedIds(new Set(dismissals.map(d => `${d.notification_type}:${d.notification_id}`)));
+      }
+    };
+
+    loadReadState();
+  }, [user?.id]);
+
+  // Filter out read notifications
+  const visibleSavList = newSavList.filter(sav => {
+    if (dismissedIds.has(`sav:${sav.id}`)) return false;
+    if (notifClearedAt && new Date(sav.created_at) <= new Date(notifClearedAt)) return false;
+    return true;
+  });
+
+  const visibleCallNotesList = callNotesList.filter(note => {
+    if (dismissedIds.has(`call_note:${note.id}`)) return false;
+    if (notifClearedAt && new Date(note.created_at) <= new Date(notifClearedAt)) return false;
+    return true;
+  });
+
+  const totalNotifCount = visibleSavList.length + visibleCallNotesList.length;
 
   const fetchNotifLists = async () => {
     setLoadingNotifs(true);
@@ -109,13 +133,13 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
           .select('id, client_name, client_phone, call_subject, priority, created_at')
           .eq('is_completed', false)
           .order('created_at', { ascending: false })
-          .limit(10),
+          .limit(20),
         supabase
           .from('sav_requests')
           .select('id, client_name, system_type, problem_desc, urgent, created_at')
           .eq('status', 'nouvelle')
           .order('created_at', { ascending: false })
-          .limit(10)
+          .limit(20)
       ]);
       if (!callNotesResult.error) setCallNotesList(callNotesResult.data || []);
       if (!savResult.error) setNewSavList(savResult.data || []);
@@ -127,22 +151,20 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
   };
 
   useEffect(() => {
-    fetchPendingCount();
+    fetchNotifLists();
 
     const channel = supabase
       .channel('notifications-badge')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'call_notes' }, () => {
-        fetchPendingCount();
-        if (showNotifPanel) fetchNotifLists();
+        fetchNotifLists();
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'sav_requests' }, () => {
-        fetchPendingCount();
-        if (showNotifPanel) fetchNotifLists();
+        fetchNotifLists();
       })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [showNotifPanel]);
+  }, []);
 
   const handleBellClick = () => {
     if (!showNotifPanel) {
@@ -151,58 +173,57 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
     setShowNotifPanel(!showNotifPanel);
   };
 
-  const markSavAsSeen = async (savId: string, e: React.MouseEvent) => {
+  const dismissNotification = async (type: 'sav' | 'call_note', notificationId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!user?.id) return;
+
+    const key = `${type}:${notificationId}`;
+    // Optimistic update
+    setDismissedIds(prev => new Set(prev).add(key));
+
     try {
-      const { error } = await supabase
-        .from('sav_requests')
-        .update({ status: 'en_cours' })
-        .eq('id', savId);
-      if (!error) {
-        setNewSavList(prev => prev.filter(s => s.id !== savId));
-        setNewSavCount(prev => prev - 1);
-      }
+      await supabase
+        .from('notification_dismissals')
+        .upsert({
+          user_id: user.id,
+          notification_type: type,
+          notification_id: notificationId,
+          dismissed_at: new Date().toISOString()
+        }, { onConflict: 'user_id,notification_type,notification_id' });
     } catch (err) {
-      console.error('Error marking SAV as seen:', err);
+      console.error('Error dismissing notification:', err);
+      // Revert optimistic update
+      setDismissedIds(prev => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
     }
   };
 
-  const markCallNoteAsSeen = async (noteId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      const { error } = await supabase
-        .from('call_notes')
-        .update({ is_completed: true })
-        .eq('id', noteId);
-      if (!error) {
-        setCallNotesList(prev => prev.filter(n => n.id !== noteId));
-        setPendingCallNotes(prev => prev - 1);
-      }
-    } catch (err) {
-      console.error('Error marking call note as seen:', err);
-    }
-  };
+  const markAllAsRead = async () => {
+    if (!user?.id) return;
 
-  const markAllAsSeen = async () => {
+    const now = new Date().toISOString();
+    // Optimistic update
+    setNotifClearedAt(now);
+
     try {
-      if (newSavList.length > 0) {
-        await supabase
-          .from('sav_requests')
-          .update({ status: 'en_cours' })
-          .eq('status', 'nouvelle');
-      }
-      if (callNotesList.length > 0) {
-        await supabase
-          .from('call_notes')
-          .update({ is_completed: true })
-          .eq('is_completed', false);
-      }
-      setNewSavList([]);
-      setCallNotesList([]);
-      setNewSavCount(0);
-      setPendingCallNotes(0);
+      // Update the user's cleared_at timestamp
+      await supabase
+        .from('users')
+        .update({ notifications_cleared_at: now })
+        .eq('email', user.email);
+
+      // Clean up old individual dismissals (they're now redundant)
+      await supabase
+        .from('notification_dismissals')
+        .delete()
+        .eq('user_id', user.id);
+
+      setDismissedIds(new Set());
     } catch (err) {
-      console.error('Error marking all as seen:', err);
+      console.error('Error marking all as read:', err);
     }
   };
 
@@ -373,12 +394,12 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                       <div className="flex items-center gap-1">
                         {totalNotifCount > 0 && (
                           <button
-                            onClick={markAllAsSeen}
+                            onClick={markAllAsRead}
                             className="flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-colors"
-                            title="Tout marquer comme vu"
+                            title="Tout marquer comme lu"
                           >
                             <CheckCheck className="h-3.5 w-3.5" />
-                            <span className="hidden sm:inline">Tout vu</span>
+                            <span className="hidden sm:inline">Tout lu</span>
                           </button>
                         )}
                         <button
@@ -406,7 +427,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                         <div className="flex items-center justify-center py-12">
                           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
                         </div>
-                      ) : newSavList.length === 0 && callNotesList.length === 0 ? (
+                      ) : visibleSavList.length === 0 && visibleCallNotesList.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
                           <div className="p-4 bg-gray-50 rounded-full mb-4">
                             <BellOff className="h-8 w-8 text-gray-300" />
@@ -417,17 +438,17 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                       ) : (
                         <>
                           {/* New SAV Requests Section */}
-                          {newSavList.length > 0 && (
+                          {visibleSavList.length > 0 && (
                             <div>
                               <div className="px-5 py-2 bg-orange-50 border-b border-orange-100 flex items-center gap-2">
                                 <AlertTriangle className="h-3.5 w-3.5 text-orange-600" />
                                 <span className="text-xs font-semibold text-orange-700 uppercase tracking-wide">Nouvelles demandes SAV</span>
                                 <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-orange-500 text-white text-[10px] font-bold">
-                                  {newSavCount}
+                                  {visibleSavList.length}
                                 </span>
                               </div>
                               <div className="divide-y divide-gray-50">
-                                {newSavList.map((sav) => (
+                                {visibleSavList.map((sav) => (
                                   <div
                                     key={sav.id}
                                     className="relative group"
@@ -472,9 +493,9 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                                       </div>
                                     </button>
                                     <button
-                                      onClick={(e) => markSavAsSeen(sav.id, e)}
+                                      onClick={(e) => dismissNotification('sav', sav.id, e)}
                                       className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-gray-300 hover:text-green-600 hover:bg-green-50 opacity-0 group-hover:opacity-100 transition-all duration-150"
-                                      title="Marquer comme vu"
+                                      title="Marquer comme lu"
                                     >
                                       <Check className="h-4 w-4" />
                                     </button>
@@ -485,17 +506,17 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                           )}
 
                           {/* Call Notes / Reminders Section */}
-                          {callNotesList.length > 0 && (
+                          {visibleCallNotesList.length > 0 && (
                             <div>
                               <div className="px-5 py-2 bg-blue-50 border-b border-blue-100 flex items-center gap-2">
                                 <Phone className="h-3.5 w-3.5 text-blue-600" />
                                 <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Rappels en attente</span>
                                 <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-blue-500 text-white text-[10px] font-bold">
-                                  {pendingCallNotes}
+                                  {visibleCallNotesList.length}
                                 </span>
                               </div>
                               <div className="divide-y divide-gray-50">
-                                {callNotesList.map((note) => (
+                                {visibleCallNotesList.map((note) => (
                                   <div
                                     key={note.id}
                                     className="relative group"
@@ -540,9 +561,9 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                                       </div>
                                     </button>
                                     <button
-                                      onClick={(e) => markCallNoteAsSeen(note.id, e)}
+                                      onClick={(e) => dismissNotification('call_note', note.id, e)}
                                       className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-gray-300 hover:text-green-600 hover:bg-green-50 opacity-0 group-hover:opacity-100 transition-all duration-150"
-                                      title="Marquer comme vu"
+                                      title="Marquer comme lu"
                                     >
                                       <Check className="h-4 w-4" />
                                     </button>
@@ -556,9 +577,9 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                     </div>
 
                     {/* Footer */}
-                    {(newSavList.length > 0 || callNotesList.length > 0) && (
+                    {(visibleSavList.length > 0 || visibleCallNotesList.length > 0) && (
                       <div className="px-5 py-3 border-t border-gray-100 bg-gray-50/50 flex items-center gap-3">
-                        {newSavList.length > 0 && (
+                        {visibleSavList.length > 0 && (
                           <button
                             onClick={() => {
                               navigate('/');
@@ -569,10 +590,10 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                             Voir les SAV →
                           </button>
                         )}
-                        {newSavList.length > 0 && callNotesList.length > 0 && (
+                        {visibleSavList.length > 0 && visibleCallNotesList.length > 0 && (
                           <div className="w-px h-4 bg-gray-300"></div>
                         )}
-                        {callNotesList.length > 0 && (
+                        {visibleCallNotesList.length > 0 && (
                           <button
                             onClick={() => {
                               navigate('/callnotes');
