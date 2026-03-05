@@ -617,6 +617,12 @@ export const ClientRecordsPage: React.FC = () => {
                                 loading={formLoading}
                                 extrabatData={extrabatData}
                                 onExtrabatDataChange={setExtrabatData}
+                                initialClientData={{
+                                    client_name: clientInfo ? `${clientInfo.prenom} ${clientInfo.nom}`.trim() : (savRecords[0]?.client_name || maintenanceRecords[0]?.client_name),
+                                    client_email: clientInfo?.email || undefined,
+                                    phone: phone || undefined,
+                                    address: address ? `${address.description ? address.description + ', ' : ''}${address.codePostal} ${address.ville}`.trim() : (savRecords[0]?.address || undefined)
+                                }}
                             />
                         </div>
                     </div>
@@ -635,6 +641,11 @@ export const ClientRecordsPage: React.FC = () => {
                                 loading={formLoading}
                                 extrabatData={extrabatData}
                                 onExtrabatDataChange={setExtrabatData}
+                                initialClientData={{
+                                    client_name: clientInfo ? `${clientInfo.prenom} ${clientInfo.nom}`.trim() : (savRecords[0]?.client_name || maintenanceRecords[0]?.client_name),
+                                    phone: phone || undefined,
+                                    address: address ? `${address.description ? address.description + ', ' : ''}${address.codePostal} ${address.ville}`.trim() : (maintenanceRecords[0]?.address || savRecords[0]?.address || undefined)
+                                }}
                             />
                         </div>
                     </div>

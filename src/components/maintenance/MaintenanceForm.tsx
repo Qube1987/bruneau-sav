@@ -44,6 +44,11 @@ interface MaintenanceFormProps {
     ouvrageId?: number;
   };
   onExtrabatDataChange?: (data: { clientId?: number; ouvrageId?: number }) => void;
+  initialClientData?: {
+    client_name?: string;
+    phone?: string;
+    address?: string;
+  };
 }
 
 export const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
@@ -53,7 +58,8 @@ export const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
   onCancel,
   loading = false,
   extrabatData,
-  onExtrabatDataChange
+  onExtrabatDataChange,
+  initialClientData
 }) => {
   const { canAccessBillingInfo } = useAuth();
   const {
@@ -99,6 +105,15 @@ export const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
   const systemModel = watch('system_model');
   const clientName = watch('client_name');
   const systemType = watch('system_type');
+
+  // Prefill client data when provided (from client records page)
+  useEffect(() => {
+    if (!contract && initialClientData) {
+      if (initialClientData.client_name) setValue('client_name', initialClientData.client_name);
+      if (initialClientData.phone) setValue('phone', initialClientData.phone);
+      if (initialClientData.address) setValue('address', initialClientData.address);
+    }
+  }, [initialClientData, contract, setValue]);
 
   useEffect(() => {
     if (!contract && clientName && systemType) {

@@ -61,6 +61,12 @@ interface SavFormProps {
     ouvrageId?: number;
   };
   onExtrabatDataChange?: (data: { clientId?: number; ouvrageId?: number }) => void;
+  initialClientData?: {
+    client_name?: string;
+    client_email?: string;
+    phone?: string;
+    address?: string;
+  };
 }
 
 export const SavForm: React.FC<SavFormProps> = ({
@@ -70,7 +76,8 @@ export const SavForm: React.FC<SavFormProps> = ({
   onCancel,
   loading = false,
   extrabatData,
-  onExtrabatDataChange
+  onExtrabatDataChange,
+  initialClientData
 }) => {
   const {
     register,
@@ -131,6 +138,16 @@ export const SavForm: React.FC<SavFormProps> = ({
     request?.rapport_reformule ? true : false
   );
   const [sendingSMS, setSendingSMS] = useState(false);
+
+  // Prefill client data when provided (from client records page)
+  useEffect(() => {
+    if (!request && initialClientData) {
+      if (initialClientData.client_name) setValue('client_name', initialClientData.client_name);
+      if (initialClientData.client_email) setValue('client_email', initialClientData.client_email);
+      if (initialClientData.phone) setValue('phone', initialClientData.phone);
+      if (initialClientData.address) setValue('address', initialClientData.address);
+    }
+  }, [initialClientData, request, setValue]);
 
   const isUrgent = watch('urgent');
   const isQuickIntervention = watch('is_quick_intervention');
