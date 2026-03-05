@@ -170,47 +170,48 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Mobile Navigation */}
-          {mobileMenuOpen && (
-            <div className="md:hidden border-t border-gray-200 bg-white relative z-50 overflow-hidden">
-              <div className="px-4 py-2 space-y-1">
-                <Link
-                  to="/"
-                  className={`block px-3 py-3 rounded-md font-medium ${location.pathname === '/' || location.pathname === '/billing'
-                    ? 'bg-primary-100 text-primary-800'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                    }`}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <AlertTriangle className="h-4 w-4 inline mr-2" />
-                  SAV
-                </Link>
-                <Link
-                  to="/maintenance"
-                  className={`block px-3 py-3 rounded-md font-medium ${location.pathname === '/maintenance'
-                    ? 'bg-primary-100 text-primary-800'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                    }`}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Wrench className="h-4 w-4 inline mr-2" />
-                  Maintenance
-                </Link>
-                <Link
-                  to="/callnotes"
-                  className={`block px-3 py-3 rounded-md font-medium ${location.pathname === '/callnotes'
-                    ? 'bg-primary-100 text-primary-800'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                    }`}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Phone className="h-4 w-4 inline mr-2" />
-                  Appels & Rappels
-                </Link>
-              </div>
+        {/* Mobile Navigation */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-gray-200 bg-white relative z-50 overflow-hidden">
+            <div className="px-4 py-2 space-y-1">
+              <Link
+                to="/"
+                className={`block px-3 py-3 rounded-md font-medium ${location.pathname === '/' || location.pathname === '/billing'
+                  ? 'bg-primary-100 text-primary-800'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <AlertTriangle className="h-4 w-4 inline mr-2" />
+                SAV
+              </Link>
+              <Link
+                to="/maintenance"
+                className={`block px-3 py-3 rounded-md font-medium ${location.pathname === '/maintenance'
+                  ? 'bg-primary-100 text-primary-800'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <Wrench className="h-4 w-4 inline mr-2" />
+                Maintenance
+              </Link>
+              <Link
+                to="/callnotes"
+                className={`block px-3 py-3 rounded-md font-medium ${location.pathname === '/callnotes'
+                  ? 'bg-primary-100 text-primary-800'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <Phone className="h-4 w-4 inline mr-2" />
+                Appels & Rappels
+              </Link>
             </div>
-          )}
+          </div>
+        )}
       </header>
 
       {/* Main content */}
