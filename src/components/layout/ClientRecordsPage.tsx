@@ -335,11 +335,15 @@ export const ClientRecordsPage: React.FC = () => {
     const goToMaintenancePage = (id: string) => navigate(`/maintenance?id=${id}`);
 
     const getClientLabel = () => {
-        if (!clientInfo) return `Client #${extrabatId}`;
-        const civilite = typeof clientInfo.civilite === 'object'
-            ? clientInfo.civilite.libelle
-            : (clientInfo.civilite || '');
-        return `${civilite ? civilite + ' ' : ''}${clientInfo.prenom} ${clientInfo.nom}`.trim();
+        if (clientInfo) {
+            const civilite = typeof clientInfo.civilite === 'object'
+                ? clientInfo.civilite.libelle
+                : (clientInfo.civilite || '');
+            return `${civilite ? civilite + ' ' : ''}${clientInfo.prenom} ${clientInfo.nom}`.trim();
+        }
+        // Fallback: use client_name from SAV or maintenance records
+        const fallbackName = savRecords[0]?.client_name || maintenanceRecords[0]?.client_name;
+        return fallbackName || `Client #${extrabatId}`;
     };
 
     const phone = clientInfo?.telephones?.[0]?.number;
@@ -387,8 +391,8 @@ export const ClientRecordsPage: React.FC = () => {
                             onArchive={handleSavArchive}
                             onEdit={(id) => goToSavPage(id)}
                             onDelete={handleSavDelete}
-                            onEditIntervention={(iId, savId) => goToSavPage(savId)}
-                            onEditReport={(iId, savId) => goToSavPage(savId)}
+                            onEditIntervention={(_iId, savId) => goToSavPage(savId)}
+                            onEditReport={(_iId, savId) => goToSavPage(savId)}
                             onDeleteIntervention={handleSavDeleteIntervention}
                             onRefresh={() => modalSav && openSavModal(modalSav.id)}
                         />
@@ -414,7 +418,7 @@ export const ClientRecordsPage: React.FC = () => {
                             onMarkCompleted={handleMaintenanceMarkCompleted}
                             onEdit={(id) => goToMaintenancePage(id)}
                             onDelete={handleMaintenanceDelete}
-                            onEditIntervention={(iId, cId) => goToMaintenancePage(cId)}
+                            onEditIntervention={(_iId, cId) => goToMaintenancePage(cId)}
                             onDeleteIntervention={handleMaintenanceDeleteIntervention}
                             onRefresh={() => modalMaintenance && openMaintenanceModal(modalMaintenance.id)}
                         />
