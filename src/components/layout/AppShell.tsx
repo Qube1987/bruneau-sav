@@ -1,4 +1,4 @@
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode, useState, useRef, useEffect } from 'react';
 import { SMSSettings } from '../sav/SMSSettings';
 import { UserManagement } from '../users/UserManagement';
 import { PushSettings } from '../users/PushSettings';
@@ -30,6 +30,17 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
   const [showSMSSettings, setShowSMSSettings] = useState(false);
   const [showUserManagement, setShowUserManagement] = useState(false);
   const [showPushSettings, setShowPushSettings] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -96,32 +107,40 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
               </Link>
             </div>
 
+            {/* Bell button (notifications push) */}
+            <button
+              onClick={() => setShowPushSettings(true)}
+              className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex-shrink-0"
+              title="Notifications Push"
+            >
+              <Bell className="h-5 w-5 text-gray-700" />
+            </button>
+
             {/* User menu */}
-            <div className="relative flex-shrink-0 min-w-0 mr-4">
+            <div className="relative flex-shrink-0" ref={dropdownRef}>
               <button
                 type="button"
-                className="flex items-center text-sm rounded-lg h-11 px-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors min-w-0"
+                className="flex items-center gap-2 p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
+                title="Menu utilisateur"
               >
-                <div className="h-7 w-7 sm:h-8 sm:w-8 bg-primary-100 rounded-full flex items-center justify-center mr-1 sm:mr-2 flex-shrink-0">
-                  <User className="h-4 w-4 text-primary-600" />
-                </div>
-                <ChevronDown className="ml-1 h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                <User className="h-5 w-5 text-gray-700" />
+                <ChevronDown className={`h-4 w-4 text-gray-700 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {userMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 sm:w-56 bg-white rounded-md shadow-lg py-1 z-50 overflow-hidden">
-                  <div className="px-4 py-2 text-sm text-gray-700 border-b border-gray-100">
-                    <div className="font-medium truncate text-xs sm:text-sm">{user?.email}</div>
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                  <div className="px-4 py-3 border-b border-gray-200">
+                    <p className="text-sm text-gray-900 font-medium truncate">{user?.email}</p>
                   </div>
                   <button
                     onClick={() => {
                       setShowSMSSettings(true);
                       setUserMenuOpen(false);
                     }}
-                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left"
                   >
-                    <MessageSquare className="mr-3 h-4 w-4" />
+                    <MessageSquare className="h-4 w-4" />
                     Configuration SMS
                   </button>
                   <button
@@ -129,42 +148,23 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                       setShowUserManagement(true);
                       setUserMenuOpen(false);
                     }}
-                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left"
                   >
-                    <Users className="mr-3 h-4 w-4" />
+                    <Users className="h-4 w-4" />
                     Gestion utilisateurs
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowPushSettings(true);
-                      setUserMenuOpen(false);
-                    }}
-                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                  >
-                    <Bell className="mr-3 h-4 w-4" />
-                    Notifications push
                   </button>
                   <button
                     onClick={() => {
                       signOut();
                       setUserMenuOpen(false);
                     }}
-                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left"
                   >
-                    <LogOut className="mr-3 h-4 w-4" />
+                    <LogOut className="h-4 w-4" />
                     Déconnexion
                   </button>
                 </div>
               )}
-            </div>
-
-            {/* Logo */}
-            <div className="hidden lg:flex items-center flex-shrink-0">
-              <img
-                src="/BRUNEAU_PROTECTION_LOGO_QUADRI.png"
-                alt="Bruneau Protection"
-                className="h-10"
-              />
             </div>
           </div>
         </div>
