@@ -2,6 +2,7 @@ import React, { ReactNode, useState, useRef, useEffect } from 'react';
 import { SMSSettings } from '../sav/SMSSettings';
 import { UserManagement } from '../users/UserManagement';
 import { PushSettings } from '../users/PushSettings';
+import { GlobalSavSearch } from './GlobalSavSearch';
 import { useAuth } from '../../hooks/useAuth';
 import { useLocation, Link } from 'react-router-dom';
 import {
@@ -72,6 +73,9 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                 </div>
               </div>
             </div>
+
+            {/* Global Search */}
+            <GlobalSavSearch />
 
             {/* Navigation Tabs */}
             <div className="hidden md:flex items-center space-x-1 mx-2 lg:mx-4 flex-shrink-0">
