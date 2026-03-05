@@ -15,12 +15,16 @@ import {
     Tag,
     FileWarning,
     ChevronRight,
-    X
+    X,
+    Plus
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { SYSTEM_TYPES, STATUS_LABELS, MAINTENANCE_STATUS_LABELS, SavRequest, MaintenanceContract } from '../../types';
 import { SavCard } from '../sav/SavCard';
 import { MaintenanceCard } from '../maintenance/MaintenanceCard';
+import { SavForm } from '../sav/SavForm';
+import { MaintenanceForm } from '../maintenance/MaintenanceForm';
+import { useGeocoding } from '../../hooks/useGeocoding';
 
 interface ClientInfo {
     nom: string;
@@ -101,10 +105,33 @@ export const ClientRecordsPage: React.FC = () => {
     const [modalMaintenance, setModalMaintenance] = useState<MaintenanceContract | null>(null);
     const [modalLoading, setModalLoading] = useState(false);
 
+    // Form state
+    const [showSavForm, setShowSavForm] = useState(false);
+    const [showMaintenanceForm, setShowMaintenanceForm] = useState(false);
+    const [formLoading, setFormLoading] = useState(false);
+    const [users, setUsers] = useState<any[]>([]);
+    const [extrabatData, setExtrabatData] = useState<{ clientId?: number; ouvrageId?: number }>({});
+
+    const { geocodeAddress } = useGeocoding();
+
+
     useEffect(() => {
         if (!extrabatId) return;
         loadData(Number(extrabatId));
+        setExtrabatData({ clientId: Number(extrabatId) });
     }, [extrabatId]);
+
+    // Fetch users for form dropdowns
+    useEffect(() => {
+        const fetchUsers = async () => {
+            const { data } = await supabase
+                .from('users')
+                .select('id, display_name, email, phone, role, extrabat_code')
+                .order('display_name');
+            if (data) setUsers(data);
+        };
+        fetchUsers();
+    }, []);
 
     const loadData = async (id: number) => {
         setLoading(true);
@@ -334,6 +361,87 @@ export const ClientRecordsPage: React.FC = () => {
     const goToSavPage = (id: string) => navigate(`/?id=${id}`);
     const goToMaintenancePage = (id: string) => navigate(`/maintenance?id=${id}`);
 
+    // Create SAV handler
+    const handleCreateSav = async (data: any) => {
+        try {
+            setFormLoading(true);
+            let city_derived = null;
+            if (data.address) {
+                const cityMatch = data.address.match(/\d{5}\s+([^,]+)/);
+                if (cityMatch) city_derived = cityMatch[1].trim();
+            }
+            const cleanedData = {
+                ...data,
+                assigned_user_id: data.assigned_user_id === '' ? null : data.assigned_user_id,
+                created_by: data.created_by === '' ? null : data.created_by
+            };
+            let latitude = null, longitude = null;
+            if (data.address) {
+                const geocoded = await geocodeAddress(data.address);
+                if (geocoded) { latitude = geocoded.lat; longitude = geocoded.lng; }
+            }
+            const { error } = await supabase.from('sav_requests').insert({
+                ...cleanedData,
+                city_derived,
+                system_type: data.system_type || 'autre',
+                status: 'nouvelle',
+                priority: data.urgent || false,
+                extrabat_id: extrabatData?.clientId || null,
+                extrabat_ouvrage_id: extrabatData?.ouvrageId || null,
+                latitude, longitude
+            });
+            if (error) throw error;
+            setShowSavForm(false);
+            loadData(Number(extrabatId));
+        } catch (err) {
+            console.error('Error creating SAV:', err);
+            alert('Erreur lors de la création du SAV');
+        } finally {
+            setFormLoading(false);
+        }
+    };
+
+    // Create Maintenance handler
+    const handleCreateMaintenance = async (data: any) => {
+        try {
+            setFormLoading(true);
+            let city_derived = null;
+            if (data.address) {
+                const cityMatch = data.address.match(/\d{5}\s+([^,]+)/);
+                if (cityMatch) city_derived = cityMatch[1].trim();
+            }
+            const cleanedData = {
+                ...data,
+                assigned_user_id: data.assigned_user_id === '' ? null : data.assigned_user_id,
+                created_by: data.created_by === '' ? null : data.created_by,
+                last_year_visit_date: data.last_year_visit_date === '' ? null : data.last_year_visit_date
+            };
+            let latitude = null, longitude = null;
+            if (data.address) {
+                const geocoded = await geocodeAddress(data.address);
+                if (geocoded) { latitude = geocoded.lat; longitude = geocoded.lng; }
+            }
+            const { error } = await supabase.from('maintenance_contracts').insert({
+                ...cleanedData,
+                city_derived,
+                system_type: data.system_type,
+                status: 'a_realiser',
+                extrabat_id: extrabatData?.clientId || null,
+                extrabat_ouvrage_id: extrabatData?.ouvrageId || null,
+                latitude, longitude
+            });
+            if (error) throw error;
+            setShowMaintenanceForm(false);
+            loadData(Number(extrabatId));
+        } catch (err) {
+            console.error('Error creating maintenance:', err);
+            alert('Erreur lors de la création du contrat');
+        } finally {
+            setFormLoading(false);
+        }
+    };
+
+
     const getClientLabel = () => {
         if (clientInfo) {
             const civilite = typeof clientInfo.civilite === 'object'
@@ -475,31 +583,75 @@ export const ClientRecordsPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* Onglets */}
-            <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit">
+            {/* Onglets + bouton d'ajout */}
+            <div className="flex items-center justify-between">
+                <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit">
+                    <button
+                        onClick={() => setActiveTab('sav')}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'sav' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+                    >
+                        <AlertTriangle className="h-4 w-4 text-orange-500" />
+                        SAV
+                        <span className={`px-1.5 py-0.5 rounded text-xs ${activeTab === 'sav' ? 'bg-orange-100 text-orange-700' : 'bg-gray-200 text-gray-600'}`}>
+                            {savRecords.length}
+                        </span>
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('maintenance')}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'maintenance' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+                    >
+                        <Wrench className="h-4 w-4 text-blue-500" />
+                        Maintenance
+                        <span className={`px-1.5 py-0.5 rounded text-xs ${activeTab === 'maintenance' ? 'bg-blue-100 text-blue-700' : 'bg-gray-200 text-gray-600'}`}>
+                            {maintenanceRecords.length}
+                        </span>
+                    </button>
+                </div>
+
                 <button
-                    onClick={() => setActiveTab('sav')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'sav' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-                        }`}
+                    onClick={() => activeTab === 'sav' ? setShowSavForm(true) : setShowMaintenanceForm(true)}
+                    className="inline-flex items-center px-4 py-2 bg-primary-900 hover:bg-primary-800 text-white font-semibold rounded-lg transition-colors text-sm"
                 >
-                    <AlertTriangle className="h-4 w-4 text-orange-500" />
-                    SAV
-                    <span className={`px-1.5 py-0.5 rounded text-xs ${activeTab === 'sav' ? 'bg-orange-100 text-orange-700' : 'bg-gray-200 text-gray-600'}`}>
-                        {savRecords.length}
-                    </span>
-                </button>
-                <button
-                    onClick={() => setActiveTab('maintenance')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'maintenance' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-                        }`}
-                >
-                    <Wrench className="h-4 w-4 text-blue-500" />
-                    Maintenance
-                    <span className={`px-1.5 py-0.5 rounded text-xs ${activeTab === 'maintenance' ? 'bg-blue-100 text-blue-700' : 'bg-gray-200 text-gray-600'}`}>
-                        {maintenanceRecords.length}
-                    </span>
+                    <Plus className="h-4 w-4 mr-2" />
+                    {activeTab === 'sav' ? 'Nouvelle demande SAV' : 'Nouveau contrat'}
                 </button>
             </div>
+
+            {/* SAV Form Modal */}
+            {showSavForm && (
+                <div className="fixed inset-0 bg-black/50 z-[150] flex items-start justify-center overflow-y-auto py-8 px-4" onClick={() => setShowSavForm(false)}>
+                    <div className="w-full max-w-3xl bg-white rounded-xl shadow-2xl" onClick={e => e.stopPropagation()}>
+                        <div className="p-6">
+                            <SavForm
+                                users={users}
+                                onSubmit={handleCreateSav}
+                                onCancel={() => setShowSavForm(false)}
+                                loading={formLoading}
+                                extrabatData={extrabatData}
+                                onExtrabatDataChange={setExtrabatData}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Maintenance Form Modal */}
+            {showMaintenanceForm && (
+                <div className="fixed inset-0 bg-black/50 z-[150] flex items-start justify-center overflow-y-auto py-8 px-4" onClick={() => setShowMaintenanceForm(false)}>
+                    <div className="w-full max-w-3xl bg-white rounded-xl shadow-2xl" onClick={e => e.stopPropagation()}>
+                        <div className="p-6">
+                            <MaintenanceForm
+                                users={users}
+                                onSubmit={handleCreateMaintenance}
+                                onCancel={() => setShowMaintenanceForm(false)}
+                                loading={formLoading}
+                                extrabatData={extrabatData}
+                                onExtrabatDataChange={setExtrabatData}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Contenu onglet SAV */}
             {activeTab === 'sav' && (
