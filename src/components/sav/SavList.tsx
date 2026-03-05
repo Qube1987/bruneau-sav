@@ -564,13 +564,19 @@ export const SavList: React.FC = () => {
           .eq('id', selectedSavId);
 
         // Create Extrabat appointment for new interventions
+        console.log('=== Extrabat appointment creation check ===');
+        console.log('technician_ids:', data.technician_ids);
+        console.log('selectedSavId:', selectedSavId);
         if (data.technician_ids && data.technician_ids.length > 0) {
           const selectedSav = requests.find(r => r.id === selectedSavId);
+          console.log('selectedSav found:', !!selectedSav);
 
           // Get all Extrabat codes for selected technicians
           const technicianCodes = data.technician_ids
             .map((techId: string) => users.find(u => u.id === techId)?.extrabat_code)
             .filter((code): code is string => !!code);
+
+          console.log('technicianCodes:', technicianCodes);
 
           if (technicianCodes.length > 0 && selectedSav) {
             const extrabatResult = await createAppointment(
@@ -601,7 +607,17 @@ export const SavList: React.FC = () => {
                   .eq('id', newIntervention.id);
               }
             }
+          } else {
+            if (technicianCodes.length === 0) {
+              console.warn('No Extrabat codes found for selected technicians. Technician IDs:', data.technician_ids);
+              console.warn('Users with extrabat_code:', users.filter(u => u.extrabat_code).map(u => ({ id: u.id, name: u.display_name, code: u.extrabat_code })));
+            }
+            if (!selectedSav) {
+              console.warn('selectedSav is undefined! selectedSavId:', selectedSavId, 'requests count:', requests.length);
+            }
           }
+        } else {
+          console.log('No technician_ids provided, skipping Extrabat appointment creation');
         }
 
       }
