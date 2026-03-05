@@ -4,7 +4,8 @@ import { UserManagement } from '../users/UserManagement';
 import { PushSettings } from '../users/PushSettings';
 import { GlobalSavSearch } from './GlobalSavSearch';
 import { useAuth } from '../../hooks/useAuth';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
+import { supabase } from '../../lib/supabase';
 import {
   LogOut,
   User,
@@ -26,11 +27,13 @@ interface AppShellProps {
 export const AppShell: React.FC<AppShellProps> = ({ children }) => {
   const { user, signOut } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showSMSSettings, setShowSMSSettings] = useState(false);
   const [showUserManagement, setShowUserManagement] = useState(false);
   const [showPushSettings, setShowPushSettings] = useState(false);
+  const [pendingCallNotes, setPendingCallNotes] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -41,6 +44,31 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Fetch pending call notes count
+  useEffect(() => {
+    const fetchPendingCount = async () => {
+      try {
+        const { count, error } = await supabase
+          .from('call_notes')
+          .select('*', { count: 'exact', head: true })
+          .eq('is_completed', false);
+        if (!error) setPendingCallNotes(count || 0);
+      } catch (err) {
+        console.error('Error fetching pending call notes:', err);
+      }
+    };
+    fetchPendingCount();
+
+    const channel = supabase
+      .channel('callnotes-badge')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'call_notes' }, () => {
+        fetchPendingCount();
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   return (
@@ -113,13 +141,27 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
 
             {/* Right side: bell + user menu */}
             <div className="flex items-center gap-2 flex-shrink-0">
-              {/* Bell button (notifications push) */}
+              {/* Bell button (notifications / rappels) */}
               <button
-                onClick={() => setShowPushSettings(true)}
-                className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                title="Notifications Push"
+                onClick={() => navigate('/callnotes')}
+                className="relative p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                title="Rappels en attente"
               >
-                <Bell className="h-5 w-5 text-gray-700" />
+                <Bell className={`h-5 w-5 ${pendingCallNotes > 0 ? 'text-primary-700' : 'text-gray-700'}`} />
+                {pendingCallNotes > 0 && (
+                  <span
+                    className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1 rounded-full bg-red-500 text-white text-[11px] font-bold shadow-sm"
+                    style={{ animation: 'badgePulse 2s ease-in-out infinite' }}
+                  >
+                    {pendingCallNotes > 99 ? '99+' : pendingCallNotes}
+                  </span>
+                )}
+                <style>{`
+                  @keyframes badgePulse {
+                    0%, 100% { transform: scale(1); }
+                    50% { transform: scale(1.1); }
+                  }
+                `}</style>
               </button>
 
               {/* User menu */}
