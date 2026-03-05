@@ -38,6 +38,34 @@ export const MaintenanceList: React.FC = () => {
 
   const { contracts, loading: contractsLoading, error, tablesExist, refetch } = useMaintenanceContracts(filters);
 
+  // Handle deep-linking from client search (?id=...)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    if (id) {
+      setSelectedContractId(id);
+      // Clear URL parameter
+      window.history.replaceState({}, '', '/maintenance');
+    }
+  }, []);
+
+  // Scroll to highlighted contract after data loads
+  useEffect(() => {
+    if (selectedContractId && !contractsLoading && contracts.length > 0 && !showInterventionForm) {
+      const el = document.querySelector(`[data-maintenance-id="${selectedContractId}"]`);
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.classList.add('ring-2', 'ring-primary-500', 'ring-offset-2');
+          setTimeout(() => {
+            el.classList.remove('ring-2', 'ring-primary-500', 'ring-offset-2');
+            setSelectedContractId(null);
+          }, 3000);
+        }, 300);
+      }
+    }
+  }, [selectedContractId, contractsLoading, contracts]);
+
   // Fetch users and cities for filters
   useEffect(() => {
     const fetchData = async () => {

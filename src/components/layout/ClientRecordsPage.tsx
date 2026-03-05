@@ -13,7 +13,8 @@ import {
     Loader2,
     Calendar,
     Tag,
-    FileWarning
+    FileWarning,
+    ChevronRight
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { SYSTEM_TYPES, STATUS_LABELS, MAINTENANCE_STATUS_LABELS } from '../../types';
@@ -239,7 +240,8 @@ export const ClientRecordsPage: React.FC = () => {
                         savRecords.map((sav) => (
                             <div
                                 key={sav.id}
-                                className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md transition-shadow"
+                                onClick={() => navigate(`/?id=${sav.id}`)}
+                                className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md hover:border-primary-300 transition-all cursor-pointer group"
                             >
                                 <div className="flex items-start gap-4">
                                     <div className="mt-0.5">
@@ -281,6 +283,7 @@ export const ClientRecordsPage: React.FC = () => {
                                             )}
                                         </div>
                                     </div>
+                                    <ChevronRight className="h-5 w-5 text-gray-300 group-hover:text-primary-500 flex-shrink-0 mt-1 transition-colors" />
                                 </div>
                             </div>
                         ))
@@ -300,7 +303,8 @@ export const ClientRecordsPage: React.FC = () => {
                         maintenanceRecords.map((contract) => (
                             <div
                                 key={contract.id}
-                                className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md transition-shadow"
+                                onClick={() => navigate(`/maintenance?id=${contract.id}`)}
+                                className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md hover:border-primary-300 transition-all cursor-pointer group"
                             >
                                 <div className="flex items-start gap-4">
                                     <div className="mt-0.5">
@@ -349,6 +353,7 @@ export const ClientRecordsPage: React.FC = () => {
                                             )}
                                         </div>
                                     </div>
+                                    <ChevronRight className="h-5 w-5 text-gray-300 group-hover:text-primary-500 flex-shrink-0 mt-1 transition-colors" />
                                 </div>
                             </div>
                         ))

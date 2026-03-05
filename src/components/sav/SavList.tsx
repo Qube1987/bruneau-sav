@@ -97,17 +97,41 @@ export const SavList: React.FC = () => {
     }
   }, [userProfile?.id]);
 
-  // Handle deep-linking from notifications (?id=...)
+  // Handle deep-linking from notifications or client search (?id=...)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
     if (id) {
       setSelectedSavId(id);
       setShowDetailsModal(true);
+      // Disable "My SAV" filter to ensure we can see the target SAV
+      setShowOnlyMySav(false);
+      setFilters(prev => ({
+        ...prev,
+        status: undefined, // Show all statuses
+        assigned_user_id: undefined
+      }));
       // Clear URL parameter
       window.history.replaceState({}, '', '/');
     }
   }, []);
+
+  // Scroll to highlighted SAV card after data loads
+  useEffect(() => {
+    if (selectedSavId && !requestsLoading && requests.length > 0) {
+      const el = document.querySelector(`[data-sav-id="${selectedSavId}"]`);
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.classList.add('ring-2', 'ring-primary-500', 'ring-offset-2');
+          setTimeout(() => {
+            el.classList.remove('ring-2', 'ring-primary-500', 'ring-offset-2');
+            setSelectedSavId(null);
+          }, 3000);
+        }, 300);
+      }
+    }
+  }, [selectedSavId, requestsLoading, requests]);
 
   // Toggle between "My SAV" and "All SAV"
   const toggleSavFilter = () => {
