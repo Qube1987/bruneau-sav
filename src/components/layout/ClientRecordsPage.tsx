@@ -14,10 +14,13 @@ import {
     Calendar,
     Tag,
     FileWarning,
-    ChevronRight
+    ChevronRight,
+    X
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { SYSTEM_TYPES, STATUS_LABELS, MAINTENANCE_STATUS_LABELS } from '../../types';
+import { SYSTEM_TYPES, STATUS_LABELS, MAINTENANCE_STATUS_LABELS, SavRequest, MaintenanceContract } from '../../types';
+import { SavCard } from '../sav/SavCard';
+import { MaintenanceCard } from '../maintenance/MaintenanceCard';
 
 interface ClientInfo {
     nom: string;
@@ -93,6 +96,11 @@ export const ClientRecordsPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'sav' | 'maintenance'>('sav');
 
+    // Modal state
+    const [modalSav, setModalSav] = useState<SavRequest | null>(null);
+    const [modalMaintenance, setModalMaintenance] = useState<MaintenanceContract | null>(null);
+    const [modalLoading, setModalLoading] = useState(false);
+
     useEffect(() => {
         if (!extrabatId) return;
         loadData(Number(extrabatId));
@@ -129,6 +137,203 @@ export const ClientRecordsPage: React.FC = () => {
         }
     };
 
+    // Fetch full SAV record for modal
+    const openSavModal = async (savId: string) => {
+        setModalLoading(true);
+        try {
+            const { data, error } = await supabase
+                .from('sav_requests')
+                .select(`
+          *,
+          assigned_user:assigned_user_id(id, display_name, email),
+          interventions:sav_interventions(
+            *,
+            technician:technician_id(id, display_name, email)
+          )
+        `)
+                .eq('id', savId)
+                .single();
+
+            if (error) throw error;
+
+            // Check for maintenance contract
+            const { data: contractData } = await supabase
+                .from('maintenance_contracts')
+                .select('id')
+                .eq('client_name', data.client_name)
+                .limit(1);
+
+            // Load technicians and photos for each intervention
+            const interventionsWithData = await Promise.all(
+                (data.interventions || []).map(async (intervention: any) => {
+                    const { data: techData } = await supabase
+                        .from('sav_intervention_technicians')
+                        .select('technician:technician_id(id, display_name, email)')
+                        .eq('sav_intervention_id', intervention.id);
+
+                    const { data: photosData } = await supabase
+                        .from('intervention_photos')
+                        .select('*')
+                        .eq('intervention_id', intervention.id)
+                        .eq('intervention_type', 'sav');
+
+                    const photosWithUrls = (photosData || []).map((photo: any) => {
+                        const { data: { publicUrl } } = supabase.storage
+                            .from('intervention-photos')
+                            .getPublicUrl(photo.file_path);
+                        return { ...photo, url: publicUrl };
+                    });
+
+                    const { data: batteryData } = await supabase
+                        .from('intervention_batteries')
+                        .select('*, battery_product:battery_products(*)')
+                        .eq('intervention_id', intervention.id)
+                        .eq('intervention_type', 'sav');
+
+                    return {
+                        ...intervention,
+                        technician_ids: techData?.map((t: any) => t.technician.id) || [],
+                        technicians: techData?.map((t: any) => t.technician) || [],
+                        photos: photosWithUrls,
+                        batteries: batteryData || []
+                    };
+                })
+            );
+
+            setModalSav({
+                ...data,
+                has_maintenance_contract: contractData && contractData.length > 0,
+                interventions: interventionsWithData
+            } as SavRequest);
+        } catch (err) {
+            console.error('Erreur chargement SAV:', err);
+            alert('Erreur lors du chargement du dossier SAV');
+        } finally {
+            setModalLoading(false);
+        }
+    };
+
+    // Fetch full Maintenance record for modal
+    const openMaintenanceModal = async (contractId: string) => {
+        setModalLoading(true);
+        try {
+            const { data, error } = await supabase
+                .from('maintenance_contracts')
+                .select(`
+          *,
+          assigned_user:assigned_user_id(id, display_name, email),
+          interventions:maintenance_interventions(
+            *,
+            technician:technician_id(id, display_name, email)
+          )
+        `)
+                .eq('id', contractId)
+                .single();
+
+            if (error) throw error;
+
+            // Load technicians and photos for each intervention
+            const interventionsWithData = await Promise.all(
+                (data.interventions || []).map(async (intervention: any) => {
+                    const { data: techData } = await supabase
+                        .from('maintenance_intervention_technicians')
+                        .select('technician:technician_id(id, display_name, email)')
+                        .eq('maintenance_intervention_id', intervention.id);
+
+                    const { data: photosData } = await supabase
+                        .from('intervention_photos')
+                        .select('*')
+                        .eq('intervention_id', intervention.id)
+                        .eq('intervention_type', 'maintenance');
+
+                    const photosWithUrls = (photosData || []).map((photo: any) => {
+                        const { data: { publicUrl } } = supabase.storage
+                            .from('intervention-photos')
+                            .getPublicUrl(photo.file_path);
+                        return { ...photo, url: publicUrl };
+                    });
+
+                    const { data: batteryData } = await supabase
+                        .from('intervention_batteries')
+                        .select('*, battery_product:battery_products(*)')
+                        .eq('intervention_id', intervention.id)
+                        .eq('intervention_type', 'maintenance');
+
+                    return {
+                        ...intervention,
+                        technician_ids: techData?.map((t: any) => t.technician.id) || [],
+                        technicians: techData?.map((t: any) => t.technician) || [],
+                        photos: photosWithUrls,
+                        batteries: batteryData || []
+                    };
+                })
+            );
+
+            setModalMaintenance({
+                ...data,
+                interventions: interventionsWithData
+            } as MaintenanceContract);
+        } catch (err) {
+            console.error('Erreur chargement maintenance:', err);
+            alert('Erreur lors du chargement du contrat de maintenance');
+        } finally {
+            setModalLoading(false);
+        }
+    };
+
+    // SAV action handlers for modal
+    const handleSavMarkComplete = async (id: string) => {
+        await supabase.from('sav_requests').update({ status: 'terminee', resolved_at: new Date().toISOString() }).eq('id', id);
+        openSavModal(id); // refresh modal
+        loadData(Number(extrabatId)); // refresh list
+    };
+
+    const handleSavArchive = async (id: string) => {
+        await supabase.from('sav_requests').update({ status: 'archivee', archived_at: new Date().toISOString() }).eq('id', id);
+        openSavModal(id);
+        loadData(Number(extrabatId));
+    };
+
+    const handleSavDelete = async (id: string) => {
+        await supabase.from('sav_requests').delete().eq('id', id);
+        setModalSav(null);
+        loadData(Number(extrabatId));
+    };
+
+    const handleSavDeleteIntervention = async (interventionId: string) => {
+        await supabase.from('sav_interventions').delete().eq('id', interventionId);
+        if (modalSav) {
+            openSavModal(modalSav.id);
+            loadData(Number(extrabatId));
+        }
+    };
+
+    const handleMaintenanceMarkCompleted = async (id: string) => {
+        const current = maintenanceRecords.find(c => c.id === id);
+        const newStatus = current?.status === 'realisee' ? 'a_realiser' : 'realisee';
+        await supabase.from('maintenance_contracts').update({ status: newStatus }).eq('id', id);
+        openMaintenanceModal(id);
+        loadData(Number(extrabatId));
+    };
+
+    const handleMaintenanceDelete = async (id: string) => {
+        await supabase.from('maintenance_contracts').delete().eq('id', id);
+        setModalMaintenance(null);
+        loadData(Number(extrabatId));
+    };
+
+    const handleMaintenanceDeleteIntervention = async (interventionId: string) => {
+        await supabase.from('maintenance_interventions').delete().eq('id', interventionId);
+        if (modalMaintenance) {
+            openMaintenanceModal(modalMaintenance.id);
+            loadData(Number(extrabatId));
+        }
+    };
+
+    // Navigate to full page for complex actions
+    const goToSavPage = (id: string) => navigate(`/?id=${id}`);
+    const goToMaintenancePage = (id: string) => navigate(`/maintenance?id=${id}`);
+
     const getClientLabel = () => {
         if (!clientInfo) return `Client #${extrabatId}`;
         const civilite = typeof clientInfo.civilite === 'object'
@@ -153,6 +358,70 @@ export const ClientRecordsPage: React.FC = () => {
 
     return (
         <div className="space-y-6">
+            {/* Loading overlay for modal */}
+            {modalLoading && (
+                <div className="fixed inset-0 bg-black/30 z-[200] flex items-center justify-center">
+                    <div className="bg-white rounded-xl p-6 shadow-2xl flex items-center gap-3">
+                        <Loader2 className="h-5 w-5 animate-spin text-primary-500" />
+                        <span className="text-sm text-gray-700">Chargement...</span>
+                    </div>
+                </div>
+            )}
+
+            {/* SAV Modal */}
+            {modalSav && (
+                <div className="fixed inset-0 bg-black/50 z-[150] flex items-start justify-center overflow-y-auto py-8 px-4" onClick={() => setModalSav(null)}>
+                    <div className="w-full max-w-2xl" onClick={e => e.stopPropagation()}>
+                        <div className="flex justify-end mb-2">
+                            <button
+                                onClick={() => setModalSav(null)}
+                                className="p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
+                            >
+                                <X className="h-5 w-5 text-gray-600" />
+                            </button>
+                        </div>
+                        <SavCard
+                            request={modalSav}
+                            onAddIntervention={(id) => goToSavPage(id)}
+                            onMarkComplete={handleSavMarkComplete}
+                            onArchive={handleSavArchive}
+                            onEdit={(id) => goToSavPage(id)}
+                            onDelete={handleSavDelete}
+                            onEditIntervention={(iId, savId) => goToSavPage(savId)}
+                            onEditReport={(iId, savId) => goToSavPage(savId)}
+                            onDeleteIntervention={handleSavDeleteIntervention}
+                            onRefresh={() => modalSav && openSavModal(modalSav.id)}
+                        />
+                    </div>
+                </div>
+            )}
+
+            {/* Maintenance Modal */}
+            {modalMaintenance && (
+                <div className="fixed inset-0 bg-black/50 z-[150] flex items-start justify-center overflow-y-auto py-8 px-4" onClick={() => setModalMaintenance(null)}>
+                    <div className="w-full max-w-2xl" onClick={e => e.stopPropagation()}>
+                        <div className="flex justify-end mb-2">
+                            <button
+                                onClick={() => setModalMaintenance(null)}
+                                className="p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
+                            >
+                                <X className="h-5 w-5 text-gray-600" />
+                            </button>
+                        </div>
+                        <MaintenanceCard
+                            contract={modalMaintenance}
+                            onAddIntervention={(id) => goToMaintenancePage(id)}
+                            onMarkCompleted={handleMaintenanceMarkCompleted}
+                            onEdit={(id) => goToMaintenancePage(id)}
+                            onDelete={handleMaintenanceDelete}
+                            onEditIntervention={(iId, cId) => goToMaintenancePage(cId)}
+                            onDeleteIntervention={handleMaintenanceDeleteIntervention}
+                            onRefresh={() => modalMaintenance && openMaintenanceModal(modalMaintenance.id)}
+                        />
+                    </div>
+                </div>
+            )}
+
             {/* Bouton retour */}
             <button
                 onClick={() => navigate(-1)}
@@ -240,7 +509,7 @@ export const ClientRecordsPage: React.FC = () => {
                         savRecords.map((sav) => (
                             <div
                                 key={sav.id}
-                                onClick={() => navigate(`/?id=${sav.id}`)}
+                                onClick={() => openSavModal(sav.id)}
                                 className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md hover:border-primary-300 transition-all cursor-pointer group"
                             >
                                 <div className="flex items-start gap-4">
@@ -303,7 +572,7 @@ export const ClientRecordsPage: React.FC = () => {
                         maintenanceRecords.map((contract) => (
                             <div
                                 key={contract.id}
-                                onClick={() => navigate(`/maintenance?id=${contract.id}`)}
+                                onClick={() => openMaintenanceModal(contract.id)}
                                 className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md hover:border-primary-300 transition-all cursor-pointer group"
                             >
                                 <div className="flex items-start gap-4">
