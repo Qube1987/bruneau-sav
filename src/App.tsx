@@ -8,6 +8,7 @@ import { SavList } from './components/sav/SavList';
 import { BillingList } from './components/sav/BillingList';
 import { MaintenanceList } from './components/maintenance/MaintenanceList';
 import { CallNotes } from './components/callnotes/CallNotes';
+import { ClientRecordsPage } from './components/layout/ClientRecordsPage';
 import { Loader } from 'lucide-react';
 
 // Error fallback component
@@ -21,8 +22,8 @@ const ErrorFallback: React.FC<{ error: Error }> = ({ error }) => {
           <summary className="cursor-pointer font-medium">Error details</summary>
           <pre className="mt-2 whitespace-pre-wrap">{error.message}</pre>
         </details>
-        <button 
-          onClick={() => window.location.reload()} 
+        <button
+          onClick={() => window.location.reload()}
           className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
         >
           Reload page
@@ -104,6 +105,16 @@ const AppContent: React.FC = () => {
               <ProtectedRoute>
                 <AppShell>
                   <CallNotes />
+                </AppShell>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/client/:extrabatId"
+            element={
+              <ProtectedRoute>
+                <AppShell>
+                  <ClientRecordsPage />
                 </AppShell>
               </ProtectedRoute>
             }
