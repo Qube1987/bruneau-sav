@@ -569,22 +569,10 @@ export const ClientRecordsPage: React.FC = () => {
                     </div>
                     <span className="text-xs text-gray-400 flex-shrink-0">ID Extrabat : {extrabatId}</span>
                 </div>
-
-                {/* Compteurs */}
-                <div className="mt-5 flex gap-4">
-                    <div className="flex items-center gap-2 px-4 py-2.5 bg-orange-50 rounded-lg border border-orange-100">
-                        <AlertTriangle className="h-4 w-4 text-orange-500" />
-                        <span className="text-sm font-semibold text-orange-800">{savRecords.length} SAV</span>
-                    </div>
-                    <div className="flex items-center gap-2 px-4 py-2.5 bg-blue-50 rounded-lg border border-blue-100">
-                        <Wrench className="h-4 w-4 text-blue-500" />
-                        <span className="text-sm font-semibold text-blue-800">{maintenanceRecords.length} Maintenance</span>
-                    </div>
-                </div>
             </div>
 
             {/* Onglets + bouton d'ajout */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit">
                     <button
                         onClick={() => setActiveTab('sav')}
@@ -610,7 +598,7 @@ export const ClientRecordsPage: React.FC = () => {
 
                 <button
                     onClick={() => activeTab === 'sav' ? setShowSavForm(true) : setShowMaintenanceForm(true)}
-                    className="inline-flex items-center px-4 py-2 bg-primary-900 hover:bg-primary-800 text-white font-semibold rounded-lg transition-colors text-sm"
+                    className="inline-flex items-center px-4 py-2 bg-primary-900 hover:bg-primary-800 text-white font-semibold rounded-lg transition-colors text-sm w-fit"
                 >
                     <Plus className="h-4 w-4 mr-2" />
                     {activeTab === 'sav' ? 'Nouvelle demande SAV' : 'Nouveau contrat'}
