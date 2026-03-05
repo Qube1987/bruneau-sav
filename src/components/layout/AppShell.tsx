@@ -21,7 +21,9 @@ import {
   BellOff,
   Clock,
   Settings,
-  FileWarning
+  FileWarning,
+  Check,
+  CheckCheck
 } from 'lucide-react';
 
 interface CallNote {
@@ -147,6 +149,61 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
       fetchNotifLists();
     }
     setShowNotifPanel(!showNotifPanel);
+  };
+
+  const markSavAsSeen = async (savId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const { error } = await supabase
+        .from('sav_requests')
+        .update({ status: 'en_cours' })
+        .eq('id', savId);
+      if (!error) {
+        setNewSavList(prev => prev.filter(s => s.id !== savId));
+        setNewSavCount(prev => prev - 1);
+      }
+    } catch (err) {
+      console.error('Error marking SAV as seen:', err);
+    }
+  };
+
+  const markCallNoteAsSeen = async (noteId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const { error } = await supabase
+        .from('call_notes')
+        .update({ is_completed: true })
+        .eq('id', noteId);
+      if (!error) {
+        setCallNotesList(prev => prev.filter(n => n.id !== noteId));
+        setPendingCallNotes(prev => prev - 1);
+      }
+    } catch (err) {
+      console.error('Error marking call note as seen:', err);
+    }
+  };
+
+  const markAllAsSeen = async () => {
+    try {
+      if (newSavList.length > 0) {
+        await supabase
+          .from('sav_requests')
+          .update({ status: 'en_cours' })
+          .eq('status', 'nouvelle');
+      }
+      if (callNotesList.length > 0) {
+        await supabase
+          .from('call_notes')
+          .update({ is_completed: true })
+          .eq('is_completed', false);
+      }
+      setNewSavList([]);
+      setCallNotesList([]);
+      setNewSavCount(0);
+      setPendingCallNotes(0);
+    } catch (err) {
+      console.error('Error marking all as seen:', err);
+    }
   };
 
   const getSystemTypeLabel = (type: string) => {
@@ -314,6 +371,16 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                         )}
                       </div>
                       <div className="flex items-center gap-1">
+                        {totalNotifCount > 0 && (
+                          <button
+                            onClick={markAllAsSeen}
+                            className="flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-colors"
+                            title="Tout marquer comme vu"
+                          >
+                            <CheckCheck className="h-3.5 w-3.5" />
+                            <span className="hidden sm:inline">Tout vu</span>
+                          </button>
+                        )}
                         <button
                           onClick={() => {
                             setShowPushSettings(true);
@@ -361,46 +428,57 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                               </div>
                               <div className="divide-y divide-gray-50">
                                 {newSavList.map((sav) => (
-                                  <button
+                                  <div
                                     key={sav.id}
-                                    onClick={() => {
-                                      navigate('/');
-                                      setShowNotifPanel(false);
-                                    }}
-                                    className="w-full text-left px-5 py-3.5 hover:bg-orange-50/50 transition-all duration-150"
+                                    className="relative group"
                                   >
-                                    <div className="flex gap-3">
-                                      <div className="flex-shrink-0 mt-0.5">
-                                        <FileWarning className={`h-5 w-5 ${sav.urgent ? 'text-red-500' : 'text-orange-500'}`} />
-                                      </div>
-                                      <div className="flex-1 min-w-0">
-                                        <div className="flex items-start justify-between gap-2">
-                                          <p className="text-sm font-semibold text-gray-900 truncate">
-                                            {sav.client_name}
-                                          </p>
-                                          <div className="flex items-center gap-1 flex-shrink-0">
-                                            {sav.urgent && (
-                                              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-red-100 text-red-700">
-                                                Urgent
+                                    <button
+                                      onClick={() => {
+                                        navigate('/');
+                                        setShowNotifPanel(false);
+                                      }}
+                                      className="w-full text-left px-5 py-3.5 hover:bg-orange-50/50 transition-all duration-150 pr-12"
+                                    >
+                                      <div className="flex gap-3">
+                                        <div className="flex-shrink-0 mt-0.5">
+                                          <FileWarning className={`h-5 w-5 ${sav.urgent ? 'text-red-500' : 'text-orange-500'}`} />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                          <div className="flex items-start justify-between gap-2">
+                                            <p className="text-sm font-semibold text-gray-900 truncate">
+                                              {sav.client_name}
+                                            </p>
+                                            <div className="flex items-center gap-1 flex-shrink-0">
+                                              {sav.urgent && (
+                                                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-red-100 text-red-700">
+                                                  Urgent
+                                                </span>
+                                              )}
+                                              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">
+                                                {getSystemTypeLabel(sav.system_type)}
                                               </span>
-                                            )}
-                                            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">
-                                              {getSystemTypeLabel(sav.system_type)}
+                                            </div>
+                                          </div>
+                                          <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">
+                                            {sav.problem_desc}
+                                          </p>
+                                          <div className="flex items-center gap-1 mt-1.5">
+                                            <Clock className="h-3 w-3 text-gray-400" />
+                                            <span className="text-[11px] text-gray-400">
+                                              {formatTimeAgo(sav.created_at)}
                                             </span>
                                           </div>
                                         </div>
-                                        <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">
-                                          {sav.problem_desc}
-                                        </p>
-                                        <div className="flex items-center gap-1 mt-1.5">
-                                          <Clock className="h-3 w-3 text-gray-400" />
-                                          <span className="text-[11px] text-gray-400">
-                                            {formatTimeAgo(sav.created_at)}
-                                          </span>
-                                        </div>
                                       </div>
-                                    </div>
-                                  </button>
+                                    </button>
+                                    <button
+                                      onClick={(e) => markSavAsSeen(sav.id, e)}
+                                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-gray-300 hover:text-green-600 hover:bg-green-50 opacity-0 group-hover:opacity-100 transition-all duration-150"
+                                      title="Marquer comme vu"
+                                    >
+                                      <Check className="h-4 w-4" />
+                                    </button>
+                                  </div>
                                 ))}
                               </div>
                             </div>
@@ -418,46 +496,57 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                               </div>
                               <div className="divide-y divide-gray-50">
                                 {callNotesList.map((note) => (
-                                  <button
+                                  <div
                                     key={note.id}
-                                    onClick={() => {
-                                      navigate('/callnotes');
-                                      setShowNotifPanel(false);
-                                    }}
-                                    className="w-full text-left px-5 py-3.5 hover:bg-gray-50 transition-all duration-150"
+                                    className="relative group"
                                   >
-                                    <div className="flex gap-3">
-                                      <div className="flex-shrink-0 mt-0.5">
-                                        <Phone className={`h-5 w-5 ${note.priority === 'urgent' ? 'text-red-500' : note.priority === 'high' ? 'text-orange-500' : 'text-blue-500'}`} />
-                                      </div>
-                                      <div className="flex-1 min-w-0">
-                                        <div className="flex items-start justify-between gap-2">
-                                          <p className="text-sm font-semibold text-gray-900 truncate">
-                                            {note.client_name || 'Client inconnu'}
-                                          </p>
-                                          <span className={`flex-shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${getPriorityColor(note.priority)}`}>
-                                            {getPriorityLabel(note.priority)}
-                                          </span>
+                                    <button
+                                      onClick={() => {
+                                        navigate('/callnotes');
+                                        setShowNotifPanel(false);
+                                      }}
+                                      className="w-full text-left px-5 py-3.5 hover:bg-gray-50 transition-all duration-150 pr-12"
+                                    >
+                                      <div className="flex gap-3">
+                                        <div className="flex-shrink-0 mt-0.5">
+                                          <Phone className={`h-5 w-5 ${note.priority === 'urgent' ? 'text-red-500' : note.priority === 'high' ? 'text-orange-500' : 'text-blue-500'}`} />
                                         </div>
-                                        {note.call_subject && (
-                                          <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">
-                                            {note.call_subject}
-                                          </p>
-                                        )}
-                                        <div className="flex items-center gap-1 mt-1.5">
-                                          <Clock className="h-3 w-3 text-gray-400" />
-                                          <span className="text-[11px] text-gray-400">
-                                            {formatTimeAgo(note.created_at)}
-                                          </span>
-                                          {note.client_phone && (
-                                            <span className="ml-auto text-[11px] text-gray-400">
-                                              📞 {note.client_phone}
+                                        <div className="flex-1 min-w-0">
+                                          <div className="flex items-start justify-between gap-2">
+                                            <p className="text-sm font-semibold text-gray-900 truncate">
+                                              {note.client_name || 'Client inconnu'}
+                                            </p>
+                                            <span className={`flex-shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${getPriorityColor(note.priority)}`}>
+                                              {getPriorityLabel(note.priority)}
                                             </span>
+                                          </div>
+                                          {note.call_subject && (
+                                            <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">
+                                              {note.call_subject}
+                                            </p>
                                           )}
+                                          <div className="flex items-center gap-1 mt-1.5">
+                                            <Clock className="h-3 w-3 text-gray-400" />
+                                            <span className="text-[11px] text-gray-400">
+                                              {formatTimeAgo(note.created_at)}
+                                            </span>
+                                            {note.client_phone && (
+                                              <span className="ml-auto text-[11px] text-gray-400">
+                                                📞 {note.client_phone}
+                                              </span>
+                                            )}
+                                          </div>
                                         </div>
                                       </div>
-                                    </div>
-                                  </button>
+                                    </button>
+                                    <button
+                                      onClick={(e) => markCallNoteAsSeen(note.id, e)}
+                                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-gray-300 hover:text-green-600 hover:bg-green-50 opacity-0 group-hover:opacity-100 transition-all duration-150"
+                                      title="Marquer comme vu"
+                                    >
+                                      <Check className="h-4 w-4" />
+                                    </button>
+                                  </div>
                                 ))}
                               </div>
                             </div>

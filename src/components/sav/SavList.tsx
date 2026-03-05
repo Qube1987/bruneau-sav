@@ -116,9 +116,9 @@ export const SavList: React.FC = () => {
     }
   }, []);
 
-  // Scroll to highlighted SAV card after data loads
+  // Scroll to highlighted SAV card after data loads (only when no modal is open)
   useEffect(() => {
-    if (selectedSavId && !requestsLoading && requests.length > 0) {
+    if (selectedSavId && !requestsLoading && requests.length > 0 && !showInterventionForm && !showReportForm && !showDetailsModal) {
       const el = document.querySelector(`[data-sav-id="${selectedSavId}"]`);
       if (el) {
         setTimeout(() => {
