@@ -1,15 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { X, Save, AlertTriangle, Sparkles, Zap, Clock, MessageSquare, User, Search } from 'lucide-react';
+import { X, Save, AlertTriangle, Sparkles, Zap, Clock } from 'lucide-react';
 import { SavRequest, SYSTEM_TYPES } from '../../types';
 import { ClientSearch } from './ClientSearch';
 import { useAIReformulation } from '../../hooks/useAIReformulation';
 import { useSystemBrands } from '../../hooks/useSystemBrands';
 import { BrandModelSelector } from '../common/BrandModelSelector';
-import { useSMS } from '../../hooks/useSMS';
-import { supabase } from '../../lib/supabase';
+
 
 const schema = yup.object({
   client_name: yup.string().required('Le nom du client est obligatoire'),
@@ -129,7 +128,6 @@ export const SavForm: React.FC<SavFormProps> = ({
 
   const { reformulateReport, reformulateDescription, loading: aiLoading, error: aiError } = useAIReformulation();
   const { fetchSystemInfoForClient } = useSystemBrands();
-  const { sendSMS } = useSMS();
   const [aiMessage, setAiMessage] = useState<string | null>(null);
   const [problemDescAiMessage, setProblemDescAiMessage] = useState<string | null>(null);
   const [problemDescValidated, setProblemDescValidated] = useState(
@@ -138,14 +136,6 @@ export const SavForm: React.FC<SavFormProps> = ({
   const [rapportValidated, setRapportValidated] = useState(
     request?.rapport_reformule ? true : false
   );
-  const [sendingSMS, setSendingSMS] = useState(false);
-
-  // Inline Extrabat search states
-  const [inlineExtrabatResults, setInlineExtrabatResults] = useState<any[]>([]);
-  const [inlineSearchLoading, setInlineSearchLoading] = useState(false);
-  const [showInlineResults, setShowInlineResults] = useState(false);
-  const [inlineClientSelected, setInlineClientSelected] = useState(false);
-  const inlineSearchRef = useRef<HTMLDivElement>(null);
 
   // Watch form values - must be declared before useEffects that depend on them
   const isUrgent = watch('urgent');
@@ -159,14 +149,13 @@ export const SavForm: React.FC<SavFormProps> = ({
   const systemModel = watch('system_model');
   const clientName = watch('client_name');
   const systemType = watch('system_type');
-  const phone = watch('phone');
+
 
   // Prefill client data when provided (from client records page)
   useEffect(() => {
     if (!request && initialClientData) {
       if (initialClientData.client_name) {
         setValue('client_name', initialClientData.client_name);
-        setInlineClientSelected(true);
       }
       if (initialClientData.client_email) setValue('client_email', initialClientData.client_email);
       if (initialClientData.phone) setValue('phone', initialClientData.phone);
@@ -174,85 +163,7 @@ export const SavForm: React.FC<SavFormProps> = ({
     }
   }, [initialClientData, request, setValue]);
 
-  // Close inline results when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (inlineSearchRef.current && !inlineSearchRef.current.contains(event.target as Node)) {
-        setShowInlineResults(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
-  // Inline Extrabat search when typing in client_name field
-  useEffect(() => {
-    if (inlineClientSelected || request) return;
-
-    const currentName = clientName || '';
-    if (currentName.length < 3) {
-      setInlineExtrabatResults([]);
-      setShowInlineResults(false);
-      return;
-    }
-
-    const timer = setTimeout(async () => {
-      setInlineSearchLoading(true);
-      try {
-        const { data, error } = await supabase.functions.invoke('extrabat-proxy', {
-          body: {
-            endpoint: 'clients',
-            params: {
-              q: currentName,
-              include: 'telephone,adresse,ouvrage'
-            }
-          }
-        });
-
-        if (!error && data?.success) {
-          setInlineExtrabatResults(data.data || []);
-          setShowInlineResults(true);
-        }
-      } catch (err) {
-        console.error('Inline Extrabat search failed:', err);
-      } finally {
-        setInlineSearchLoading(false);
-      }
-    }, 400);
-
-    return () => clearTimeout(timer);
-  }, [clientName, inlineClientSelected, request]);
-
-  const handleInlineClientSelect = (client: any) => {
-    const fullName = `${client.civilite?.libelle || ''} ${client.prenom || ''} ${client.nom || ''}`.trim();
-    setValue('client_name', fullName);
-    setInlineClientSelected(true);
-    setShowInlineResults(false);
-    setInlineExtrabatResults([]);
-
-    // Fill email
-    const email = client.email || client.mail || client.mail1 || '';
-    if (email) setValue('client_email', email);
-
-    // Fill phone
-    if (client.telephones && client.telephones.length > 0) {
-      setValue('phone', client.telephones[0].number);
-    }
-
-    // Fill address
-    if (client.adresses && client.adresses.length > 0) {
-      const addr = client.adresses[0];
-      setValue('address', `${addr.description || ''}, ${addr.codePostal || ''} ${addr.ville || ''}`.trim());
-    }
-
-    // Update Extrabat data
-    if (onExtrabatDataChange) {
-      onExtrabatDataChange({
-        clientId: client.id,
-        ouvrageId: client.ouvrage && client.ouvrage.length > 0 ? client.ouvrage[0].id : undefined
-      });
-    }
-  };
 
 
 
@@ -354,44 +265,6 @@ export const SavForm: React.FC<SavFormProps> = ({
 
   const handleFormSubmit = (data: FormData) => {
     onSubmit(data);
-  };
-
-  const handleSendTestSMS = async () => {
-    if (!phone) {
-      alert('Veuillez saisir un numéro de téléphone');
-      return;
-    }
-
-    if (!clientName) {
-      alert('Veuillez saisir un nom de client');
-      return;
-    }
-
-    if (!confirm(`Envoyer un SMS de confirmation à ${phone} ?`)) {
-      return;
-    }
-
-    setSendingSMS(true);
-    try {
-      const message = `Bruneau Protection : bonjour, nous avons bien pris connaissance de votre demande d'intervention. Merci d'enregistrer le numéro suivant comme "technicien Bruneau Protection" afin d'être sûr de ne pas manquer notre appel : 0681082597`;
-
-      const result = await sendSMS({
-        to: phone,
-        message,
-        type: 'client_confirmation'
-      });
-
-      if (result.success) {
-        alert('SMS envoyé avec succès !');
-      } else {
-        alert(`Erreur lors de l'envoi du SMS: ${result.error || 'Erreur inconnue'}`);
-      }
-    } catch (error: any) {
-      console.error('SMS Error:', error);
-      alert(`Erreur lors de l'envoi du SMS: ${error.message || 'Erreur inconnue'}`);
-    } finally {
-      setSendingSMS(false);
-    }
   };
 
   return (
@@ -497,85 +370,19 @@ export const SavForm: React.FC<SavFormProps> = ({
 
             {/* Client Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div ref={inlineSearchRef}>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Nom du client *
-                  {!request && clientName && clientName.length > 0 && clientName.length < 3 && (
-                    <span className="ml-2 text-xs text-gray-500 font-normal">
-                      (tapez au moins 3 caractères pour rechercher)
-                    </span>
-                  )}
                 </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Search className="h-4 w-4 text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    {...register('client_name')}
-                    onChange={(e) => {
-                      setValue('client_name', e.target.value);
-                      if (inlineClientSelected) {
-                        setInlineClientSelected(false);
-                      }
-                    }}
-                    className={`w-full pl-10 pr-10 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 transition-colors ${errors.client_name ? 'border-accent-300 focus:border-accent-500' : showInlineResults ? 'border-blue-400 bg-blue-50' : 'border-gray-300 focus:border-primary-500'
-                      }`}
-                    placeholder="Rechercher un client (nom ou société)..."
-                    autoComplete="off"
-                  />
-                  {inlineSearchLoading && (
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary-600 border-t-transparent"></div>
-                    </div>
-                  )}
-                </div>
+                <input
+                  type="text"
+                  {...register('client_name')}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 transition-colors ${errors.client_name ? 'border-accent-300 focus:border-accent-500' : 'border-gray-300 focus:border-primary-500'
+                    }`}
+                  placeholder="Nom du client"
+                />
                 {errors.client_name && (
                   <p className="mt-1 text-sm text-accent-600">{errors.client_name.message}</p>
-                )}
-
-                {/* Inline Extrabat search results */}
-                {showInlineResults && !request && (
-                  <div className="mt-1 relative z-20">
-                    {inlineExtrabatResults.length > 0 ? (
-                      <div className="absolute w-full bg-white border border-blue-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                        <div className="px-3 py-2 bg-blue-50 border-b border-blue-200 text-xs text-blue-700 font-medium">
-                          {inlineExtrabatResults.length} résultat{inlineExtrabatResults.length > 1 ? 's' : ''} Extrabat
-                        </div>
-                        {inlineExtrabatResults.map((client: any) => (
-                          <button
-                            key={client.id}
-                            type="button"
-                            onClick={() => handleInlineClientSelect(client)}
-                            className="w-full text-left p-3 hover:bg-blue-50 border-b border-gray-100 last:border-b-0 transition-colors"
-                          >
-                            <div className="flex items-center gap-2">
-                              <User className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                              <div className="flex-1 min-w-0">
-                                <div className="font-medium text-sm text-gray-900">
-                                  {client.civilite?.libelle || ''} {client.prenom} {client.nom}
-                                </div>
-                                {client.telephones && client.telephones.length > 0 && (
-                                  <div className="text-xs text-gray-600">
-                                    📞 {client.telephones[0].number}
-                                  </div>
-                                )}
-                                {client.adresses && client.adresses.length > 0 && (
-                                  <div className="text-xs text-gray-500">
-                                    📍 {client.adresses[0].codePostal} {client.adresses[0].ville}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    ) : (clientName || '').length >= 3 && !inlineSearchLoading ? (
-                      <div className="absolute w-full p-3 text-sm text-gray-500 text-center border border-gray-200 rounded-lg bg-gray-50">
-                        Aucun client trouvé dans Extrabat pour "{clientName}"
-                      </div>
-                    ) : null}
-                  </div>
                 )}
               </div>
 
@@ -611,29 +418,12 @@ export const SavForm: React.FC<SavFormProps> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Téléphone
                 </label>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <input
-                    type="tel"
-                    {...register('phone')}
-                    className="w-full sm:flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                    placeholder="+33123456789"
-                  />
-                  {phone && (
-                    <button
-                      type="button"
-                      onClick={handleSendTestSMS}
-                      disabled={sendingSMS}
-                      className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-                      title="Envoyer SMS de confirmation"
-                    >
-                      {sendingSMS ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
-                      ) : (
-                        <MessageSquare className="h-4 w-4" />
-                      )}
-                    </button>
-                  )}
-                </div>
+                <input
+                  type="tel"
+                  {...register('phone')}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                  placeholder="+33123456789"
+                />
               </div>
 
               <div>

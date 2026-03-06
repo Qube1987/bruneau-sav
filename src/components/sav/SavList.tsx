@@ -8,7 +8,7 @@ import { ReportForm } from './ReportForm';
 import { SavDashboard } from './SavDashboard';
 import { useSavRequests } from '../../hooks/useSavRequests';
 import { useSavStatistics } from '../../hooks/useSavStatistics';
-import { useSMS } from '../../hooks/useSMS';
+
 import { useExtrabat } from '../../hooks/useExtrabat';
 import { useGeocoding } from '../../hooks/useGeocoding';
 import { useAuth } from '../../hooks/useAuth';
@@ -20,7 +20,7 @@ import { MapView } from '../common/MapView';
 import { Calendar } from '../calendar/Calendar';
 
 export const SavList: React.FC = () => {
-  const { user, userProfile } = useAuth();
+  const { userProfile } = useAuth();
   const [showOnlyMySav, setShowOnlyMySav] = useState(false);
   const [filters, setFilters] = useState<SavFiltersType>({
     sort: 'requested_at',
@@ -40,7 +40,7 @@ export const SavList: React.FC = () => {
   const [cities, setCities] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const { sendSMS } = useSMS();
+
   const { createAppointment, updateAppointment, deleteAppointment } = useExtrabat();
   const { geocodeAddress } = useGeocoding();
   const { saveInterventionBatteries } = useBatteries();
@@ -230,50 +230,6 @@ export const SavList: React.FC = () => {
         triggerPushNotification('sav_cree', newSav);
       }
 
-      // 1. Send SMS to creator when SAV is created
-      if (newSav && user?.id) {
-        const creator = users.find(u => u.id === user.id);
-        if (creator?.phone) {
-          const smsResult = await sendSMS({
-            to: creator.phone,
-            message: 'SAV creation confirmation',
-            savData: {
-              client_name: data.client_name,
-              system_type: data.system_type,
-              urgent: data.urgent || false,
-              problem_desc: data.problem_desc
-            },
-            type: 'creation'
-          });
-
-          if (!smsResult.success) {
-            console.warn('SMS to creator failed:', smsResult.error);
-          }
-        }
-      }
-
-      // 2. Send SMS to assigned technician if phone number exists
-      if (newSav && data.assigned_user_id) {
-        const assignedUser = users.find(u => u.id === data.assigned_user_id);
-        if (assignedUser?.phone) {
-          const smsResult = await sendSMS({
-            to: assignedUser.phone,
-            message: 'SAV assignment notification',
-            savData: {
-              client_name: data.client_name,
-              system_type: data.system_type,
-              urgent: data.urgent || false,
-              problem_desc: data.problem_desc
-            },
-            type: 'assignment'
-          });
-
-          if (!smsResult.success) {
-            console.warn('SMS to technician failed:', smsResult.error);
-          }
-        }
-      }
-
       setShowSavForm(false);
 
       // Reset Extrabat data
@@ -345,27 +301,6 @@ export const SavList: React.FC = () => {
       console.log('Update error:', error);
       if (error) throw error;
 
-      // Send SMS to newly assigned technician if changed
-      if (data.assigned_user_id && data.assigned_user_id !== editingSav.assigned_user_id) {
-        const assignedUser = users.find(u => u.id === data.assigned_user_id);
-        if (assignedUser?.phone) {
-          const smsResult = await sendSMS({
-            to: assignedUser.phone,
-            message: 'SAV assignment notification',
-            savData: {
-              client_name: data.client_name,
-              system_type: data.system_type,
-              urgent: data.urgent || false,
-              problem_desc: data.problem_desc
-            },
-            type: 'assignment'
-          });
-
-          if (!smsResult.success) {
-            console.warn('SMS to technician failed:', smsResult.error);
-          }
-        }
-      }
 
       setShowSavForm(false);
       setEditingSav(null);
@@ -656,32 +591,6 @@ export const SavList: React.FC = () => {
       // Trigger push notification
       if (completedSav) {
         triggerPushNotification('sav_termine', completedSav);
-      }
-
-      // 3. Send SMS to Quentin only when SAV is marked as completed
-      if (completedSav) {
-        const quentin = users.find(u =>
-          u.email?.toLowerCase().includes('quentin') ||
-          u.display_name?.toLowerCase().includes('quentin')
-        );
-
-        if (quentin?.phone) {
-          const smsResult = await sendSMS({
-            to: quentin.phone,
-            message: 'SAV completion notification',
-            savData: {
-              client_name: completedSav.client_name,
-              system_type: completedSav.system_type,
-              urgent: completedSav.urgent,
-              problem_desc: completedSav.problem_desc
-            },
-            type: 'completion'
-          });
-
-          if (!smsResult.success) {
-            console.warn('SMS completion to Quentin failed:', smsResult.error);
-          }
-        }
       }
 
       await refetch();
