@@ -55,7 +55,7 @@ serve(async (req) => {
     let smsBody = message;
     if (savData) {
       const urgentText = savData.urgent ? ' URGENT' : '';
-      
+
       if (type === 'assignment') {
         smsBody = `Nouvelle demande de SAV${urgentText} :
 Client: ${savData.client_name}
@@ -84,11 +84,13 @@ Détails : https://bruneau27.com/gestion-sav`;
 
     // Prepare Twilio API request
     const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`
-    
+
     const formData = new URLSearchParams()
     formData.append('To', to)
     formData.append('From', fromNumber)
     formData.append('Body', smsBody)
+
+    console.log('Sending SMS to:', to, 'from:', fromNumber)
 
     // Send SMS via Twilio API
     const response = await fetch(twilioUrl, {
@@ -102,41 +104,68 @@ Détails : https://bruneau27.com/gestion-sav`;
 
     if (!response.ok) {
       const errorData = await response.text()
-      console.error('Twilio API error:', errorData)
-      throw new Error(`Twilio API error: ${response.status}`)
+      console.error('Twilio API error:', response.status, errorData)
+
+      // Try to parse Twilio error for a better message
+      let twilioErrorMessage = `Twilio API error: ${response.status}`
+      try {
+        const parsed = JSON.parse(errorData)
+        if (parsed.message) {
+          twilioErrorMessage = parsed.message
+        }
+      } catch {
+        // errorData is not JSON, use raw text
+        if (errorData) {
+          twilioErrorMessage = errorData.substring(0, 200)
+        }
+      }
+
+      // Return 200 with success:false so Supabase client can read the error
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: twilioErrorMessage
+        }),
+        {
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json'
+          }
+        }
+      )
     }
 
     const result = await response.json()
     console.log('SMS sent successfully:', result.sid)
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         messageSid: result.sid,
-        message: 'SMS sent successfully' 
+        message: 'SMS sent successfully'
       }),
-      { 
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        } 
+      {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
       }
     )
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error sending SMS:', error)
-    
+
+    // Return 200 with success:false so Supabase client can read the actual error
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error.message 
+      JSON.stringify({
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
       }),
-      { 
-        status: 500,
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        } 
+      {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
       }
     )
   }

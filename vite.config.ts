@@ -59,7 +59,13 @@ export default defineConfig({
       output: {
         entryFileNames: `assets/[name]-[hash].js`,
         chunkFileNames: `assets/[name]-[hash].js`,
-        assetFileNames: `assets/[name]-[hash].[ext]`
+        assetFileNames: `assets/[name]-[hash].[ext]`,
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-router': ['react-router-dom'],
+          'vendor-form': ['react-hook-form', '@hookform/resolvers', 'yup'],
+          'vendor-supabase': ['@supabase/supabase-js'],
+        }
       }
     }
   },
