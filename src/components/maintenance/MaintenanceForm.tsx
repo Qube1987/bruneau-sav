@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { X, Save, AlertTriangle, Battery, Euro, Building2, Users, Landmark, Calendar } from 'lucide-react';
+import { X, Save, AlertTriangle, Battery, Euro, Building2, Users, Landmark, Calendar, User, Search } from 'lucide-react';
 import { MaintenanceContract, SYSTEM_TYPES, BILLING_MODE_LABELS, CLIENT_TYPE_LABELS } from '../../types';
 import { ClientSearch } from '../sav/ClientSearch';
 import { useAuth } from '../../hooks/useAuth';
 import { useSystemBrands } from '../../hooks/useSystemBrands';
 import { BrandModelSelector } from '../common/BrandModelSelector';
+import { supabase } from '../../lib/supabase';
 
 const schema = yup.object({
   client_name: yup.string().required('Le nom du client est obligatoire'),
@@ -106,14 +107,100 @@ export const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
   const clientName = watch('client_name');
   const systemType = watch('system_type');
 
+  // Inline Extrabat search states
+  const [inlineExtrabatResults, setInlineExtrabatResults] = useState<any[]>([]);
+  const [inlineSearchLoading, setInlineSearchLoading] = useState(false);
+  const [showInlineResults, setShowInlineResults] = useState(false);
+  const [inlineClientSelected, setInlineClientSelected] = useState(false);
+  const inlineSearchRef = useRef<HTMLDivElement>(null);
+
   // Prefill client data when provided (from client records page)
   useEffect(() => {
     if (!contract && initialClientData) {
-      if (initialClientData.client_name) setValue('client_name', initialClientData.client_name);
+      if (initialClientData.client_name) {
+        setValue('client_name', initialClientData.client_name);
+        setInlineClientSelected(true);
+      }
       if (initialClientData.phone) setValue('phone', initialClientData.phone);
       if (initialClientData.address) setValue('address', initialClientData.address);
     }
   }, [initialClientData, contract, setValue]);
+
+  // Close inline results when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (inlineSearchRef.current && !inlineSearchRef.current.contains(event.target as Node)) {
+        setShowInlineResults(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Inline Extrabat search when typing in client_name field
+  useEffect(() => {
+    if (inlineClientSelected || contract) return;
+
+    const currentName = clientName || '';
+    if (currentName.length < 3) {
+      setInlineExtrabatResults([]);
+      setShowInlineResults(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setInlineSearchLoading(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('extrabat-proxy', {
+          body: {
+            endpoint: 'clients',
+            params: {
+              q: currentName,
+              include: 'telephone,adresse'
+            }
+          }
+        });
+
+        if (!error && data?.success) {
+          setInlineExtrabatResults(data.data || []);
+          setShowInlineResults(true);
+        }
+      } catch (err) {
+        console.error('Inline Extrabat search failed:', err);
+      } finally {
+        setInlineSearchLoading(false);
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [clientName, inlineClientSelected, contract]);
+
+  const handleInlineClientSelect = (client: any) => {
+    const fullName = `${client.civilite?.libelle || ''} ${client.prenom || ''} ${client.nom || ''}`.trim();
+    setValue('client_name', fullName);
+    setInlineClientSelected(true);
+    setShowInlineResults(false);
+    setInlineExtrabatResults([]);
+
+    // Fill phone
+    if (client.telephones && client.telephones.length > 0) {
+      setValue('phone', client.telephones[0].number);
+    }
+
+    // Fill address
+    if (client.adresses && client.adresses.length > 0) {
+      const addr = client.adresses[0];
+      setValue('address', `${addr.description || ''}, ${addr.codePostal || ''} ${addr.ville || ''}`.trim());
+    }
+
+    // Update Extrabat data
+    if (onExtrabatDataChange) {
+      onExtrabatDataChange({
+        clientId: client.id,
+        ouvrageId: undefined
+      });
+    }
+  };
 
   useEffect(() => {
     if (!contract && clientName && systemType) {
@@ -212,19 +299,85 @@ export const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
 
               {/* Client Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
+                <div ref={inlineSearchRef}>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Nom du client *
+                    {!contract && clientName && clientName.length > 0 && clientName.length < 3 && (
+                      <span className="ml-2 text-xs text-gray-500 font-normal">
+                        (tapez au moins 3 caractères pour rechercher)
+                      </span>
+                    )}
                   </label>
-                  <input
-                    type="text"
-                    {...register('client_name')}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 transition-colors ${errors.client_name ? 'border-accent-300 focus:border-accent-500' : 'border-gray-300 focus:border-primary-500'
-                      }`}
-                    placeholder="Nom du client ou de la société"
-                  />
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Search className="h-4 w-4 text-gray-400" />
+                    </div>
+                    <input
+                      type="text"
+                      {...register('client_name')}
+                      onChange={(e) => {
+                        setValue('client_name', e.target.value);
+                        if (inlineClientSelected) {
+                          setInlineClientSelected(false);
+                        }
+                      }}
+                      className={`w-full pl-10 pr-10 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 transition-colors ${errors.client_name ? 'border-accent-300 focus:border-accent-500' : showInlineResults ? 'border-blue-400 bg-blue-50' : 'border-gray-300 focus:border-primary-500'
+                        }`}
+                      placeholder="Rechercher un client (nom ou société)..."
+                      autoComplete="off"
+                    />
+                    {inlineSearchLoading && (
+                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary-600 border-t-transparent"></div>
+                      </div>
+                    )}
+                  </div>
                   {errors.client_name && (
                     <p className="mt-1 text-sm text-accent-600">{errors.client_name.message}</p>
+                  )}
+
+                  {/* Inline Extrabat search results */}
+                  {showInlineResults && !contract && (
+                    <div className="mt-1 relative z-20">
+                      {inlineExtrabatResults.length > 0 ? (
+                        <div className="absolute w-full bg-white border border-blue-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                          <div className="px-3 py-2 bg-blue-50 border-b border-blue-200 text-xs text-blue-700 font-medium">
+                            {inlineExtrabatResults.length} résultat{inlineExtrabatResults.length > 1 ? 's' : ''} Extrabat
+                          </div>
+                          {inlineExtrabatResults.map((client: any) => (
+                            <button
+                              key={client.id}
+                              type="button"
+                              onClick={() => handleInlineClientSelect(client)}
+                              className="w-full text-left p-3 hover:bg-blue-50 border-b border-gray-100 last:border-b-0 transition-colors"
+                            >
+                              <div className="flex items-center gap-2">
+                                <User className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-medium text-sm text-gray-900">
+                                    {client.civilite?.libelle || ''} {client.prenom} {client.nom}
+                                  </div>
+                                  {client.telephones && client.telephones.length > 0 && (
+                                    <div className="text-xs text-gray-600">
+                                      📞 {client.telephones[0].number}
+                                    </div>
+                                  )}
+                                  {client.adresses && client.adresses.length > 0 && (
+                                    <div className="text-xs text-gray-500">
+                                      📍 {client.adresses[0].codePostal} {client.adresses[0].ville}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      ) : (clientName || '').length >= 3 && !inlineSearchLoading ? (
+                        <div className="absolute w-full p-3 text-sm text-gray-500 text-center border border-gray-200 rounded-lg bg-gray-50">
+                          Aucun client trouvé dans Extrabat pour "{clientName}"
+                        </div>
+                      ) : null}
+                    </div>
                   )}
                 </div>
 
