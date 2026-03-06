@@ -54,7 +54,7 @@ export default defineConfig({
   base: '/',
   build: {
     assetsDir: 'assets',
-    sourcemap: true,
+    sourcemap: false,
     rollupOptions: {
       output: {
         entryFileNames: `assets/[name]-[hash].js`,

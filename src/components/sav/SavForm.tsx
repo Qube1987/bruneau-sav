@@ -147,6 +147,20 @@ export const SavForm: React.FC<SavFormProps> = ({
   const [inlineClientSelected, setInlineClientSelected] = useState(false);
   const inlineSearchRef = useRef<HTMLDivElement>(null);
 
+  // Watch form values - must be declared before useEffects that depend on them
+  const isUrgent = watch('urgent');
+  const isQuickIntervention = watch('is_quick_intervention');
+  const isLongIntervention = watch('is_long_intervention');
+  const rapportBrut = watch('rapport_brut');
+  const rapportReformule = watch('rapport_reformule');
+  const problemDesc = watch('problem_desc');
+  const problemDescReformule = watch('problem_desc_reformule');
+  const systemBrand = watch('system_brand');
+  const systemModel = watch('system_model');
+  const clientName = watch('client_name');
+  const systemType = watch('system_type');
+  const phone = watch('phone');
+
   // Prefill client data when provided (from client records page)
   useEffect(() => {
     if (!request && initialClientData) {
@@ -240,20 +254,7 @@ export const SavForm: React.FC<SavFormProps> = ({
     }
   };
 
-  const isUrgent = watch('urgent');
-  const isQuickIntervention = watch('is_quick_intervention');
-  const isLongIntervention = watch('is_long_intervention');
-  const rapportBrut = watch('rapport_brut');
-  const rapportReformule = watch('rapport_reformule');
-  const problemDesc = watch('problem_desc');
-  const problemDescReformule = watch('problem_desc_reformule');
-  const systemBrand = watch('system_brand');
-  const systemModel = watch('system_model');
-  const clientName = watch('client_name');
-  const systemType = watch('system_type');
-  const phone = watch('phone');
-  // Unused but kept in props for parent compatibility if needed
-  // const assignedUserId = watch('assigned_user_id');
+
 
   const handleProblemDescReformulation = async () => {
     const currentProblemDesc = problemDesc || '';
