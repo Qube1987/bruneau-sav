@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SavCard } from './SavCard';
 import { SavTableRow } from './SavTableRow';
-import { SavFilters } from './SavFilters';
 import { SavForm } from './SavForm';
 import { InterventionForm } from './InterventionForm';
 import { ReportForm } from './ReportForm';
@@ -15,7 +14,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useBatteries } from '../../hooks/useBatteries';
 import { useUserLocation, haversineDistance } from '../../hooks/useUserLocation';
 import { supabase } from '../../lib/supabase';
-import { Plus, LayoutGrid, List, Loader, AlertTriangle, Database, Receipt, Map, RefreshCw, BarChart3, User, Users, Zap, Clock, Battery, AlertOctagon, Navigation } from 'lucide-react';
+import { Plus, LayoutGrid, List, Loader, AlertTriangle, Database, Receipt, Map, RefreshCw, BarChart3, User, Users, Zap, Clock, Battery, AlertOctagon, Navigation, Search } from 'lucide-react';
 import { SavFilters as SavFiltersType } from '../../types';
 import { MapView } from '../common/MapView';
 import { Calendar } from '../calendar/Calendar';
@@ -38,7 +37,6 @@ export const SavList: React.FC = () => {
   const [editingSav, setEditingSav] = useState<any>(null);
   const [extrabatData, setExtrabatData] = useState<{ clientId?: number; ouvrageId?: number }>({});
   const [users, setUsers] = useState<any[]>([]);
-  const [cities, setCities] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
 
@@ -92,18 +90,6 @@ export const SavList: React.FC = () => {
           .order('display_name');
 
         if (usersData) setUsers(usersData);
-
-        // Fetch unique cities
-        const { data: citiesData } = await supabase
-          .from('sav_requests')
-          .select('city_derived')
-          .not('city_derived', 'is', null)
-          .neq('city_derived', '');
-
-        if (citiesData) {
-          const uniqueCities = [...new Set(citiesData.map(item => item.city_derived))];
-          setCities(uniqueCities.sort());
-        }
       } catch (err) {
         console.error('Error fetching data:', err);
       }
@@ -923,29 +909,29 @@ export const SavList: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Demandes SAV</h1>
-          <p className="text-gray-600 mt-1">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4">
+        <div className="flex items-baseline gap-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Demandes SAV</h1>
+          <span className="text-sm text-gray-500">
             {requests.length} demande{requests.length !== 1 ? 's' : ''}
-            {requestsLoading && ' (chargement...)'}
-          </p>
+            {requestsLoading && ' ...'}
+          </span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-1.5 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <button
             onClick={toggleSavFilter}
-            className="inline-flex items-center px-2 py-1.5 sm:px-4 sm:py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs sm:text-sm font-semibold rounded-lg transition-colors border border-gray-300"
+            className="inline-flex items-center px-2 py-1.5 sm:px-3 sm:py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs sm:text-sm font-semibold rounded-lg transition-colors border border-gray-300"
           >
             {showOnlyMySav ? (
               <>
-                <Users className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
+                <Users className="h-4 w-4 mr-1" />
                 <span className="hidden sm:inline">Tous les SAV</span>
                 <span className="sm:hidden">Tous</span>
               </>
             ) : (
               <>
-                <User className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
+                <User className="h-4 w-4 mr-1" />
                 <span className="hidden sm:inline">Mes SAV</span>
                 <span className="sm:hidden">Mes</span>
               </>
@@ -954,63 +940,63 @@ export const SavList: React.FC = () => {
 
           <button
             onClick={() => setShowSavForm(true)}
-            className="inline-flex items-center px-2 py-1.5 sm:px-4 sm:py-2 bg-primary-900 hover:bg-primary-800 text-white text-xs sm:text-sm font-semibold rounded-lg transition-colors"
+            className="inline-flex items-center px-2 py-1.5 sm:px-3 sm:py-2 bg-primary-900 hover:bg-primary-800 text-white text-xs sm:text-sm font-semibold rounded-lg transition-colors"
           >
-            <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
+            <Plus className="h-4 w-4 mr-1" />
             <span className="hidden sm:inline">Nouvelle demande</span>
             <span className="sm:hidden">Nouveau</span>
           </button>
 
           <button
             onClick={() => window.location.href = '/billing'}
-            className="inline-flex items-center px-2 py-1.5 sm:px-4 sm:py-2 bg-accent-500 hover:bg-accent-600 text-white text-xs sm:text-sm font-semibold rounded-lg transition-colors"
+            className="inline-flex items-center px-2 py-1.5 sm:px-3 sm:py-2 bg-accent-500 hover:bg-accent-600 text-white text-xs sm:text-sm font-semibold rounded-lg transition-colors"
           >
-            <Receipt className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
+            <Receipt className="h-4 w-4 mr-1" />
             <span className="hidden sm:inline">À facturer</span>
             <span className="sm:hidden">Facturer</span>
           </button>
 
           {/* View Mode Toggle */}
-          <div className="flex bg-gray-100 p-1 rounded-lg">
+          <div className="flex bg-gray-100 p-0.5 sm:p-1 rounded-lg ml-1">
             <button
               onClick={() => setViewMode('cards')}
-              className={`p-2 rounded-md transition-colors ${viewMode === 'cards'
+              className={`p-1.5 sm:p-2 rounded-md transition-colors ${viewMode === 'cards'
                 ? 'bg-white shadow-sm text-gray-900'
                 : 'text-gray-600 hover:text-primary-700'
                 }`}
               title="Vue cartes"
             >
-              <LayoutGrid className="h-4 w-4" />
+              <LayoutGrid className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </button>
             <button
               onClick={() => setViewMode('table')}
-              className={`p-2 rounded-md transition-colors ${viewMode === 'table'
+              className={`p-1.5 sm:p-2 rounded-md transition-colors ${viewMode === 'table'
                 ? 'bg-white shadow-sm text-gray-900'
                 : 'text-gray-600 hover:text-primary-700'
                 }`}
               title="Vue liste"
             >
-              <List className="h-4 w-4" />
+              <List className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </button>
             <button
               onClick={() => setViewMode('map')}
-              className={`p-2 rounded-md transition-colors ${viewMode === 'map'
+              className={`p-1.5 sm:p-2 rounded-md transition-colors ${viewMode === 'map'
                 ? 'bg-white shadow-sm text-gray-900'
                 : 'text-gray-600 hover:text-primary-700'
                 }`}
               title="Vue carte"
             >
-              <Map className="h-4 w-4" />
+              <Map className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </button>
             <button
               onClick={() => setViewMode('dashboard')}
-              className={`p-2 rounded-md transition-colors ${viewMode === 'dashboard'
+              className={`p-1.5 sm:p-2 rounded-md transition-colors ${viewMode === 'dashboard'
                 ? 'bg-white shadow-sm text-gray-900'
                 : 'text-gray-600 hover:text-primary-700'
                 }`}
               title="Tableau de bord"
             >
-              <BarChart3 className="h-4 w-4" />
+              <BarChart3 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </button>
           </div>
           {(viewMode === 'map' || viewMode === 'dashboard') && (
@@ -1021,11 +1007,11 @@ export const SavList: React.FC = () => {
                   refetchStats();
                 }
               }}
-              className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-1 px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               title="Actualiser les données"
             >
-              <RefreshCw className="h-4 w-4" />
-              Actualiser
+              <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Actualiser</span>
             </button>
           )}
         </div>
@@ -1164,13 +1150,19 @@ export const SavList: React.FC = () => {
         )}
       </div>
 
-      {/* Filters */}
-      <SavFilters
-        filters={filters}
-        onFiltersChange={setFilters}
-        users={users}
-        cities={cities}
-      />
+      {/* Search Bar */}
+      <div className="relative">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <Search className="h-4 w-4 text-gray-400" />
+        </div>
+        <input
+          type="text"
+          placeholder="Rechercher par nom de client ou ville..."
+          className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors text-sm bg-white"
+          value={filters.q || ''}
+          onChange={(e) => setFilters(prev => ({ ...prev, q: e.target.value || undefined }))}
+        />
+      </div>
 
       {/* Calendar */}
       <Calendar />
