@@ -175,6 +175,7 @@ export const SavList: React.FC = () => {
   const handleCreateSav = async (data: any) => {
     try {
       setLoading(true);
+      const scrollY = window.scrollY;
 
       console.log('=== handleCreateSav called ===');
       console.log('Data received:', data);
@@ -235,7 +236,8 @@ export const SavList: React.FC = () => {
       // Reset Extrabat data
       setExtrabatData({});
 
-      refetch();
+      await refetch();
+      requestAnimationFrame(() => window.scrollTo(0, scrollY));
     } catch (err) {
       console.error('Error creating SAV request:', err);
       alert('Erreur lors de la création de la demande');
@@ -247,6 +249,7 @@ export const SavList: React.FC = () => {
   const handleUpdateSav = async (data: any) => {
     try {
       setLoading(true);
+      const scrollY = window.scrollY;
 
       console.log('=== handleUpdateSav called ===');
       console.log('Data received:', data);
@@ -305,7 +308,8 @@ export const SavList: React.FC = () => {
       setShowSavForm(false);
       setEditingSav(null);
 
-      refetch();
+      await refetch();
+      requestAnimationFrame(() => window.scrollTo(0, scrollY));
     } catch (err) {
       console.error('Error updating SAV request:', err);
       alert('Erreur lors de la modification de la demande');
@@ -315,6 +319,7 @@ export const SavList: React.FC = () => {
   };
 
   const handleAddIntervention = async (data: any) => {
+    const scrollY = window.scrollY;
     console.log('=== handleAddIntervention called ===');
     console.log('Data received:', data);
     console.log('Editing intervention:', editingIntervention);
@@ -561,7 +566,8 @@ export const SavList: React.FC = () => {
       setSelectedSavId(null);
       setEditingIntervention(null);
 
-      refetch();
+      await refetch();
+      requestAnimationFrame(() => window.scrollTo(0, scrollY));
     } catch (err) {
       console.error('Error adding intervention:', err);
       alert(editingIntervention ? 'Erreur lors de la modification de l\'intervention' : 'Erreur lors de l\'ajout de l\'intervention');
@@ -744,6 +750,7 @@ export const SavList: React.FC = () => {
   };
 
   const handleUpdateReport = async (data: { rapport_brut: string; rapport_reformule: string; batteries?: any[]; has_battery_change?: boolean }) => {
+    const scrollY = window.scrollY;
     console.log('=== handleUpdateReport called ===');
     console.log('Data:', data);
     console.log('Editing intervention:', editingIntervention);
@@ -779,6 +786,7 @@ export const SavList: React.FC = () => {
       setEditingIntervention(null);
 
       await refetch();
+      requestAnimationFrame(() => window.scrollTo(0, scrollY));
     } catch (err) {
       console.error('Error updating report:', err);
       alert('Erreur lors de la mise à jour du rapport');
@@ -788,6 +796,7 @@ export const SavList: React.FC = () => {
   };
 
   const handleDeleteIntervention = async (interventionId: string) => {
+    const scrollY = window.scrollY;
     try {
       // Get intervention details first to check for Extrabat ID
       const { data: intervention, error: fetchError } = await supabase
@@ -818,7 +827,8 @@ export const SavList: React.FC = () => {
 
       if (error) throw error;
 
-      refetch();
+      await refetch();
+      requestAnimationFrame(() => window.scrollTo(0, scrollY));
     } catch (err) {
       console.error('Error deleting intervention:', err);
       alert('Erreur lors de la suppression de l\'intervention');
@@ -826,6 +836,7 @@ export const SavList: React.FC = () => {
   };
 
   const handleDeleteSav = async (id: string) => {
+    const scrollY = window.scrollY;
     try {
       const { error } = await supabase
         .from('sav_requests')
@@ -834,7 +845,8 @@ export const SavList: React.FC = () => {
 
       if (error) throw error;
 
-      refetch();
+      await refetch();
+      requestAnimationFrame(() => window.scrollTo(0, scrollY));
     } catch (err) {
       console.error('Error deleting SAV request:', err);
       alert('Erreur lors de la suppression de la demande SAV');
