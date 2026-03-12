@@ -113,15 +113,15 @@ export const Calendar: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3">
-      <div className="flex flex-col space-y-3">
-        <div className="flex items-center justify-between flex-wrap gap-3">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 px-3 py-2">
+      <div className="flex flex-col">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
             className="flex items-center space-x-2 hover:opacity-70 transition-opacity"
           >
-            <CalendarIcon className="h-5 w-5 text-primary-600" />
-            <h2 className="text-lg font-bold text-gray-900">Agendas</h2>
+            <CalendarIcon className="h-4 w-4 text-primary-600" />
+            <h2 className="text-base font-bold text-gray-900">Agendas</h2>
             {isExpanded ? (
               <ChevronUp className="h-4 w-4 text-gray-600" />
             ) : (
