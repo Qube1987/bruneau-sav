@@ -113,19 +113,19 @@ export const Calendar: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-      <div className="flex flex-col space-y-4">
-        <div className="flex items-center justify-between flex-wrap gap-4">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3">
+      <div className="flex flex-col space-y-3">
+        <div className="flex items-center justify-between flex-wrap gap-3">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center space-x-3 hover:opacity-70 transition-opacity"
+            className="flex items-center space-x-2 hover:opacity-70 transition-opacity"
           >
-            <CalendarIcon className="h-6 w-6 text-primary-600" />
-            <h2 className="text-xl font-bold text-gray-900">Agendas</h2>
+            <CalendarIcon className="h-5 w-5 text-primary-600" />
+            <h2 className="text-lg font-bold text-gray-900">Agendas</h2>
             {isExpanded ? (
-              <ChevronUp className="h-5 w-5 text-gray-600" />
+              <ChevronUp className="h-4 w-4 text-gray-600" />
             ) : (
-              <ChevronDown className="h-5 w-5 text-gray-600" />
+              <ChevronDown className="h-4 w-4 text-gray-600" />
             )}
           </button>
 
@@ -229,9 +229,8 @@ export const Calendar: React.FC = () => {
                       return (
                         <div
                           key={index}
-                          className={`text-center p-2 rounded-lg border ${
-                            isToday ? 'bg-primary-50 border-primary-300' : 'bg-gray-50 border-gray-200'
-                          }`}
+                          className={`text-center p-2 rounded-lg border ${isToday ? 'bg-primary-50 border-primary-300' : 'bg-gray-50 border-gray-200'
+                            }`}
                         >
                           <div className="text-xs font-medium text-gray-600 uppercase">
                             {format(day, 'EEE', { locale: fr })}
