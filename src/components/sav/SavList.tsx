@@ -14,7 +14,7 @@ import { useGeocoding } from '../../hooks/useGeocoding';
 import { useAuth } from '../../hooks/useAuth';
 import { useBatteries } from '../../hooks/useBatteries';
 import { supabase } from '../../lib/supabase';
-import { Plus, LayoutGrid, List, Loader, AlertTriangle, Database, Receipt, Map, RefreshCw, BarChart3, User, Users } from 'lucide-react';
+import { Plus, LayoutGrid, List, Loader, AlertTriangle, Database, Receipt, Map, RefreshCw, BarChart3, User, Users, Zap, Clock, Battery, AlertOctagon } from 'lucide-react';
 import { SavFilters as SavFiltersType } from '../../types';
 import { MapView } from '../common/MapView';
 import { Calendar } from '../calendar/Calendar';
@@ -216,6 +216,7 @@ export const SavList: React.FC = () => {
           system_type: data.system_type || 'autre',
           status: 'nouvelle',
           priority: data.urgent || false,
+          sav_type: data.sav_type || null,
           extrabat_id: extrabatData?.clientId || null,
           extrabat_ouvrage_id: extrabatData?.ouvrageId || null,
           latitude,
@@ -290,6 +291,7 @@ export const SavList: React.FC = () => {
         city_derived,
         system_type: data.system_type || editingSav.system_type,
         priority: data.urgent || false,
+        sav_type: data.sav_type || null,
         latitude,
         longitude
       };
@@ -996,6 +998,78 @@ export const SavList: React.FC = () => {
             </button>
           )}
         </div>
+      </div>
+
+      {/* Quick Filter Bar */}
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          onClick={() => {
+            setFilters(prev => ({
+              ...prev,
+              urgent: prev.urgent === true ? undefined : true
+            }));
+          }}
+          className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold transition-all border gap-1 ${filters.urgent === true
+              ? 'bg-red-100 text-red-800 border-red-300 shadow-sm'
+              : 'bg-white text-gray-600 border-gray-200 hover:bg-red-50 hover:border-red-200 hover:text-red-700'
+            }`}
+        >
+          <AlertOctagon className="h-3.5 w-3.5" />
+          Urgent
+        </button>
+        <button
+          onClick={() => {
+            setFilters(prev => ({
+              ...prev,
+              is_quick_intervention: prev.is_quick_intervention === true ? undefined : true
+            }));
+          }}
+          className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold transition-all border gap-1 ${filters.is_quick_intervention === true
+              ? 'bg-blue-100 text-blue-800 border-blue-300 shadow-sm'
+              : 'bg-white text-gray-600 border-gray-200 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700'
+            }`}
+        >
+          <Zap className="h-3.5 w-3.5" />
+          Rapide
+        </button>
+        <button
+          onClick={() => {
+            setFilters(prev => ({
+              ...prev,
+              is_long_intervention: prev.is_long_intervention === true ? undefined : true
+            }));
+          }}
+          className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold transition-all border gap-1 ${filters.is_long_intervention === true
+              ? 'bg-purple-100 text-purple-800 border-purple-300 shadow-sm'
+              : 'bg-white text-gray-600 border-gray-200 hover:bg-purple-50 hover:border-purple-200 hover:text-purple-700'
+            }`}
+        >
+          <Clock className="h-3.5 w-3.5" />
+          Long
+        </button>
+        <button
+          onClick={() => {
+            setFilters(prev => {
+              const currentTypes = prev.sav_types || [];
+              const hasPiles = currentTypes.includes('piles_batteries');
+              return {
+                ...prev,
+                sav_types: hasPiles
+                  ? currentTypes.filter(t => t !== 'piles_batteries').length > 0
+                    ? currentTypes.filter(t => t !== 'piles_batteries')
+                    : undefined
+                  : [...currentTypes, 'piles_batteries']
+              };
+            });
+          }}
+          className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold transition-all border gap-1 ${filters.sav_types?.includes('piles_batteries')
+              ? 'bg-amber-100 text-amber-800 border-amber-300 shadow-sm'
+              : 'bg-white text-gray-600 border-gray-200 hover:bg-amber-50 hover:border-amber-200 hover:text-amber-700'
+            }`}
+        >
+          <Battery className="h-3.5 w-3.5" />
+          Piles/batteries
+        </button>
       </div>
 
       {/* Filters */}

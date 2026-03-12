@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { X, Save, AlertTriangle, Sparkles, Zap, Clock } from 'lucide-react';
-import { SavRequest, SYSTEM_TYPES } from '../../types';
+import { SavRequest, SYSTEM_TYPES, SAV_TYPES } from '../../types';
 import { ClientSearch } from './ClientSearch';
 import { useAIReformulation } from '../../hooks/useAIReformulation';
 import { useSystemBrands } from '../../hooks/useSystemBrands';
@@ -27,7 +27,8 @@ const schema = yup.object({
   assigned_user_id: yup.string(),
   urgent: yup.boolean(),
   is_quick_intervention: yup.boolean(),
-  is_long_intervention: yup.boolean()
+  is_long_intervention: yup.boolean(),
+  sav_type: yup.string()
 });
 
 type FormData = {
@@ -48,6 +49,7 @@ type FormData = {
   urgent?: boolean;
   is_quick_intervention?: boolean;
   is_long_intervention?: boolean;
+  sav_type?: string;
 };
 
 interface SavFormProps {
@@ -104,7 +106,8 @@ export const SavForm: React.FC<SavFormProps> = ({
       assigned_user_id: request.assigned_user_id || '',
       urgent: request.urgent,
       is_quick_intervention: request.is_quick_intervention || false,
-      is_long_intervention: request.is_long_intervention || false
+      is_long_intervention: request.is_long_intervention || false,
+      sav_type: request.sav_type || ''
     } : {
       client_name: '',
       site: '',
@@ -122,7 +125,8 @@ export const SavForm: React.FC<SavFormProps> = ({
       assigned_user_id: '',
       urgent: false,
       is_quick_intervention: false,
-      is_long_intervention: false
+      is_long_intervention: false,
+      sav_type: ''
     }
   });
 
@@ -366,6 +370,24 @@ export const SavForm: React.FC<SavFormProps> = ({
                   </p>
                 )}
               </div>
+            </div>
+
+            {/* SAV Type */}
+            <div className="mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Type de SAV
+              </label>
+              <select
+                {...register('sav_type')}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+              >
+                <option value="">Sélectionner un type de SAV</option>
+                {Object.entries(SAV_TYPES).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Client Information */}

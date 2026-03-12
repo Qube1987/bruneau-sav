@@ -40,6 +40,7 @@ export interface SavRequest {
   priority?: boolean;
   is_quick_intervention?: boolean;
   is_long_intervention?: boolean;
+  sav_type?: string;
   created_at: string;
   assigned_user?: User;
   interventions?: Intervention[];
@@ -93,6 +94,9 @@ export interface SavFilters {
   priority?: boolean;
   is_quick_intervention?: boolean;
   is_long_intervention?: boolean;
+  sav_types?: string[];
+  near_me?: boolean;
+  near_me_radius?: number; // in km
 }
 
 export const SYSTEM_TYPES = {
@@ -104,6 +108,17 @@ export const SYSTEM_TYPES = {
   interphone: 'Interphone',
   portail: 'Portail',
   autre: 'Autre'
+} as const;
+
+export const SAV_TYPES = {
+  piles_batteries: 'Piles/batteries',
+  dysfonctionnement: 'Dysfonctionnement',
+  declenchements_intempestifs: 'Déclenchements intempestifs',
+  deplacement_depose: 'Déplacement/dépose appareil',
+  ajout_materiel: 'Ajout de matériel',
+  reprogrammation: 'Reprogrammation transmission/code',
+  entretien: 'Entretien',
+  autre_type: 'Autre'
 } as const;
 
 export const STATUS_LABELS = {

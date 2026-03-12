@@ -1,6 +1,6 @@
 import React from 'react';
 import { Search, Filter, X, ChevronDown, ChevronUp } from 'lucide-react';
-import { SavFilters as SavFiltersType, SYSTEM_TYPES } from '../../types';
+import { SavFilters as SavFiltersType, SYSTEM_TYPES, SAV_TYPES } from '../../types';
 
 interface SavFiltersProps {
   filters: SavFiltersType;
@@ -26,6 +26,17 @@ export const SavFilters: React.FC<SavFiltersProps> = ({
     });
   };
 
+  const toggleSavType = (type: string) => {
+    const currentTypes = filters.sav_types || [];
+    const newTypes = currentTypes.includes(type)
+      ? currentTypes.filter(t => t !== type)
+      : [...currentTypes, type];
+    onFiltersChange({
+      ...filters,
+      sav_types: newTypes.length > 0 ? newTypes : undefined
+    });
+  };
+
   const clearFilters = () => {
     onFiltersChange({
       sort: 'requested_at',
@@ -33,7 +44,7 @@ export const SavFilters: React.FC<SavFiltersProps> = ({
     });
   };
 
-  const hasActiveFilters = Object.keys(filters).some(key => 
+  const hasActiveFilters = Object.keys(filters).some(key =>
     key !== 'sort' && key !== 'order' && filters[key as keyof SavFiltersType]
   );
 
@@ -55,11 +66,10 @@ export const SavFilters: React.FC<SavFiltersProps> = ({
         </div>
         <button
           onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-          className={`flex items-center justify-center px-3 sm:px-4 py-3 border rounded-lg font-medium transition-colors flex-shrink-0 text-sm sm:text-base whitespace-nowrap ${
-            showAdvancedFilters || hasActiveFilters
+          className={`flex items-center justify-center px-3 sm:px-4 py-3 border rounded-lg font-medium transition-colors flex-shrink-0 text-sm sm:text-base whitespace-nowrap ${showAdvancedFilters || hasActiveFilters
               ? 'border-primary-500 bg-primary-50 text-primary-700'
               : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-          }`}
+            }`}
         >
           <Filter className="h-5 w-5 sm:mr-2" />
           <span className="hidden sm:inline">Filtres</span>
@@ -166,6 +176,36 @@ export const SavFilters: React.FC<SavFiltersProps> = ({
                   </>
                 )}
               </select>
+            </div>
+          </div>
+
+          {/* SAV Type Filter - Checkboxes */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Type de SAV
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(SAV_TYPES).map(([key, label]) => {
+                const isSelected = filters.sav_types?.includes(key) || false;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => toggleSavType(key)}
+                    className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${isSelected
+                        ? 'bg-primary-100 text-primary-800 border-primary-300 shadow-sm'
+                        : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100 hover:border-gray-300'
+                      }`}
+                  >
+                    {isSelected && (
+                      <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                    {label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 

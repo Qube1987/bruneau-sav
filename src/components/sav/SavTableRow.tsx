@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronRight, Clock, User, MapPin, Phone, AlertTriangle, CheckCircle, Archive, CreditCard as Edit, Calendar, FileText, Trash2, CreditCard as Edit3, X, Star, Package, Download, Mail, Zap, MessageSquare, History, List, Receipt } from 'lucide-react';
-import { SavRequest } from '../../types';
+import { SavRequest, SAV_TYPES } from '../../types';
 import { generateInterventionPDF } from '../../lib/pdfGenerator';
 import { EmailReportModal } from './EmailReportModal';
 import { PhotoGallery } from '../common/PhotoGallery';
@@ -242,8 +242,8 @@ export const SavTableRow: React.FC<SavTableRowProps> = ({
     <div
       data-sav-id={request.id}
       className={`relative rounded-lg overflow-hidden transition-all duration-200 ${request.priority
-          ? 'bg-white border-l-4 border-blue-500 shadow-md'
-          : 'bg-white border border-gray-200 hover:shadow-sm'
+        ? 'bg-white border-l-4 border-blue-500 shadow-md'
+        : 'bg-white border border-gray-200 hover:shadow-sm'
         }`}>
       {/* Condensed Row */}
       <div className="flex items-center p-3 sm:p-4 cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => setExpanded(!expanded)}>
@@ -267,6 +267,11 @@ export const SavTableRow: React.FC<SavTableRowProps> = ({
                 Contrat
               </span>
             )}
+            {request.sav_type && (
+              <span className="px-1.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200 whitespace-nowrap">
+                {SAV_TYPES[request.sav_type as keyof typeof SAV_TYPES] || request.sav_type}
+              </span>
+            )}
           </div>
         </div>
 
@@ -279,6 +284,11 @@ export const SavTableRow: React.FC<SavTableRowProps> = ({
             {request.has_maintenance_contract && (
               <span className="px-1.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 border border-green-200">
                 Contrat
+              </span>
+            )}
+            {request.sav_type && (
+              <span className="px-1.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+                {SAV_TYPES[request.sav_type as keyof typeof SAV_TYPES] || request.sav_type}
               </span>
             )}
           </div>
@@ -308,8 +318,8 @@ export const SavTableRow: React.FC<SavTableRowProps> = ({
                 onTogglePriority(request.id);
               }}
               className={`flex p-1.5 sm:p-2 rounded-lg transition-colors ${request.priority
-                  ? 'text-blue-600 bg-blue-50 hover:bg-blue-100'
-                  : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'
+                ? 'text-blue-600 bg-blue-50 hover:bg-blue-100'
+                : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'
                 }`}
               title={request.priority ? 'Retirer de prioritaire' : 'Marquer comme prioritaire'}
             >
@@ -323,8 +333,8 @@ export const SavTableRow: React.FC<SavTableRowProps> = ({
                 onToggleQuickIntervention(request.id);
               }}
               className={`flex p-1.5 sm:p-2 rounded-lg transition-colors ${request.is_quick_intervention
-                  ? 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100'
-                  : 'text-gray-400 hover:text-emerald-600 hover:bg-emerald-50'
+                ? 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100'
+                : 'text-gray-400 hover:text-emerald-600 hover:bg-emerald-50'
                 }`}
               title={request.is_quick_intervention ? 'Retirer intervention rapide' : 'Marquer comme intervention rapide'}
             >
@@ -338,8 +348,8 @@ export const SavTableRow: React.FC<SavTableRowProps> = ({
                 onToggleLongIntervention(request.id);
               }}
               className={`flex p-1.5 sm:p-2 rounded-lg transition-colors ${request.is_long_intervention
-                  ? 'text-amber-600 bg-amber-50 hover:bg-amber-100'
-                  : 'text-gray-400 hover:text-amber-600 hover:bg-amber-50'
+                ? 'text-amber-600 bg-amber-50 hover:bg-amber-100'
+                : 'text-gray-400 hover:text-amber-600 hover:bg-amber-50'
                 }`}
               title={request.is_long_intervention ? 'Retirer intervention longue' : 'Marquer comme intervention longue'}
             >

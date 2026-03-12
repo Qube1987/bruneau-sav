@@ -103,6 +103,9 @@ export const useSavRequests = (filters: SavFilters = {}) => {
       if (filters.is_long_intervention !== undefined) {
         query = query.eq('is_long_intervention', filters.is_long_intervention);
       }
+      if (filters.sav_types && filters.sav_types.length > 0) {
+        query = query.in('sav_type', filters.sav_types);
+      }
 
       // Apply basic sorting first
       const sortField = filters.sort || 'requested_at';
@@ -258,7 +261,8 @@ export const useSavRequests = (filters: SavFilters = {}) => {
     filters.order,
     filters.priority,
     filters.is_quick_intervention,
-    filters.is_long_intervention
+    filters.is_long_intervention,
+    filters.sav_types
   ]);
 
   const refetch = () => {
