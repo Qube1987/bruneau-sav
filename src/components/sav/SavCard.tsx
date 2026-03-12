@@ -1,6 +1,7 @@
 import React from 'react';
-import { Clock, User, MapPin, Phone, AlertTriangle, CheckCircle, Archive, CreditCard as Edit, Calendar, FileText, Trash2, CreditCard as Edit3, X, Package, Download, Mail, Star, Zap, MessageSquare, History, List, Receipt } from 'lucide-react';
-import { SavRequest } from '../../types';
+import { Clock, User, MapPin, Phone, AlertTriangle, CheckCircle, Archive, CreditCard as Edit, Calendar, FileText, Trash2, CreditCard as Edit3, X, Package, Download, Mail, Star, Zap, MessageSquare, History, List, Receipt, Navigation } from 'lucide-react';
+import { SavRequest, SAV_TYPES } from '../../types';
+import { formatDistance } from '../../hooks/useUserLocation';
 import { generateInterventionPDF } from '../../lib/pdfGenerator';
 import { EmailReportModal } from './EmailReportModal';
 import { PhotoSelector } from '../common/PhotoSelector';
@@ -27,6 +28,7 @@ interface SavCardProps {
   onToggleQuickIntervention?: (id: string) => void;
   onToggleLongIntervention?: (id: string) => void;
   onRefresh?: () => void;
+  distance?: number;
 }
 
 const getStatusColor = (status: string) => {
@@ -92,7 +94,8 @@ export const SavCard: React.FC<SavCardProps> = ({
   onTogglePriority,
   onToggleQuickIntervention,
   onToggleLongIntervention,
-  onRefresh
+  onRefresh,
+  distance
 }) => {
   const [isGeneratingPDF, setIsGeneratingPDF] = React.useState(false);
   const [emailModalOpen, setEmailModalOpen] = React.useState(false);
@@ -219,11 +222,10 @@ export const SavCard: React.FC<SavCardProps> = ({
   return (
     <div
       data-sav-id={request.id}
-      className={`relative rounded-lg shadow-sm hover:shadow-md transition-all overflow-hidden ${
-      request.priority
-        ? 'border-l-4 border-blue-500 bg-white'
-        : 'border border-gray-200 bg-white'
-    }`}>
+      className={`relative rounded-lg shadow-sm hover:shadow-md transition-all overflow-hidden ${request.priority
+          ? 'border-l-4 border-blue-500 bg-white'
+          : 'border border-gray-200 bg-white'
+        }`}>
       <div className="p-3 sm:p-4">
         {/* Header */}
         <div className="flex items-start justify-between mb-3">
@@ -247,11 +249,10 @@ export const SavCard: React.FC<SavCardProps> = ({
             {onTogglePriority && (
               <button
                 onClick={() => onTogglePriority(request.id)}
-                className={`btn-icon transition-colors ${
-                  request.priority
+                className={`btn-icon transition-colors ${request.priority
                     ? 'text-blue-600 bg-blue-50 hover:bg-blue-100'
                     : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'
-                }`}
+                  }`}
                 title={request.priority ? 'Retirer de prioritaire' : 'Marquer comme prioritaire'}
               >
                 <Star className={`h-4 w-4 ${request.priority ? 'fill-blue-600' : ''}`} />
@@ -260,11 +261,10 @@ export const SavCard: React.FC<SavCardProps> = ({
             {onToggleQuickIntervention && (
               <button
                 onClick={() => onToggleQuickIntervention(request.id)}
-                className={`btn-icon transition-colors ${
-                  request.is_quick_intervention
+                className={`btn-icon transition-colors ${request.is_quick_intervention
                     ? 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100'
                     : 'text-gray-400 hover:text-emerald-600 hover:bg-emerald-50'
-                }`}
+                  }`}
                 title={request.is_quick_intervention ? 'Retirer intervention rapide' : 'Marquer comme intervention rapide'}
               >
                 <Zap className={`h-4 w-4 ${request.is_quick_intervention ? 'fill-emerald-600' : ''}`} />
@@ -273,11 +273,10 @@ export const SavCard: React.FC<SavCardProps> = ({
             {onToggleLongIntervention && (
               <button
                 onClick={() => onToggleLongIntervention(request.id)}
-                className={`btn-icon transition-colors ${
-                  request.is_long_intervention
+                className={`btn-icon transition-colors ${request.is_long_intervention
                     ? 'text-amber-600 bg-amber-50 hover:bg-amber-100'
                     : 'text-gray-400 hover:text-amber-600 hover:bg-amber-50'
-                }`}
+                  }`}
                 title={request.is_long_intervention ? 'Retirer intervention longue' : 'Marquer comme intervention longue'}
               >
                 <Clock className={`h-4 w-4 ${request.is_long_intervention ? 'fill-amber-600' : ''}`} />
@@ -302,8 +301,20 @@ export const SavCard: React.FC<SavCardProps> = ({
 
         {/* Client Info */}
         <div className="space-y-2 mb-3 min-w-0">
-          <h3 className="text-lg font-semibold text-gray-900 break-words">{request.client_name}</h3>
-          
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-gray-900 break-words">{request.client_name}</h3>
+            {distance !== undefined && distance !== Infinity && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-teal-50 text-teal-700 border border-teal-200 whitespace-nowrap">
+                <Navigation className="h-3 w-3" />
+                {formatDistance(distance)}
+              </span>
+            )}
+          </div>
+          {request.sav_type && (
+            <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+              {SAV_TYPES[request.sav_type as keyof typeof SAV_TYPES] || request.sav_type}
+            </span>
+          )}
           {request.site && (
             <div className="flex items-center text-gray-600">
               <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />

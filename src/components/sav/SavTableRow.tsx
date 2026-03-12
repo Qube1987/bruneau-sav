@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, Clock, User, MapPin, Phone, AlertTriangle, CheckCircle, Archive, CreditCard as Edit, Calendar, FileText, Trash2, CreditCard as Edit3, X, Star, Package, Download, Mail, Zap, MessageSquare, History, List, Receipt } from 'lucide-react';
+import { ChevronDown, ChevronRight, Clock, User, MapPin, Phone, AlertTriangle, CheckCircle, Archive, CreditCard as Edit, Calendar, FileText, Trash2, CreditCard as Edit3, X, Star, Package, Download, Mail, Zap, MessageSquare, History, List, Receipt, Navigation } from 'lucide-react';
 import { SavRequest, SAV_TYPES } from '../../types';
+import { formatDistance } from '../../hooks/useUserLocation';
 import { generateInterventionPDF } from '../../lib/pdfGenerator';
 import { EmailReportModal } from './EmailReportModal';
 import { PhotoGallery } from '../common/PhotoGallery';
@@ -28,6 +29,7 @@ interface SavTableRowProps {
   onToggleQuickIntervention?: (id: string) => void;
   onToggleLongIntervention?: (id: string) => void;
   onRefresh?: () => void;
+  distance?: number; // distance in km from user's location
 }
 
 const getStatusColor = (status: string) => {
@@ -93,7 +95,8 @@ export const SavTableRow: React.FC<SavTableRowProps> = ({
   onTogglePriority,
   onToggleQuickIntervention,
   onToggleLongIntervention,
-  onRefresh
+  onRefresh,
+  distance
 }) => {
   const [expanded, setExpanded] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
@@ -298,6 +301,14 @@ export const SavTableRow: React.FC<SavTableRowProps> = ({
           {request.site && (
             <div className="text-xs sm:text-sm truncate text-gray-500">
               {request.site}
+            </div>
+          )}
+          {distance !== undefined && distance !== Infinity && (
+            <div className="flex items-center gap-1 mt-0.5">
+              <Navigation className="h-3 w-3 text-teal-600" />
+              <span className="text-xs font-medium text-teal-700">
+                {formatDistance(distance)}
+              </span>
             </div>
           )}
         </div>

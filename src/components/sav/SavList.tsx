@@ -13,8 +13,9 @@ import { useExtrabat } from '../../hooks/useExtrabat';
 import { useGeocoding } from '../../hooks/useGeocoding';
 import { useAuth } from '../../hooks/useAuth';
 import { useBatteries } from '../../hooks/useBatteries';
+import { useUserLocation, haversineDistance } from '../../hooks/useUserLocation';
 import { supabase } from '../../lib/supabase';
-import { Plus, LayoutGrid, List, Loader, AlertTriangle, Database, Receipt, Map, RefreshCw, BarChart3, User, Users, Zap, Clock, Battery, AlertOctagon } from 'lucide-react';
+import { Plus, LayoutGrid, List, Loader, AlertTriangle, Database, Receipt, Map, RefreshCw, BarChart3, User, Users, Zap, Clock, Battery, AlertOctagon, Navigation } from 'lucide-react';
 import { SavFilters as SavFiltersType } from '../../types';
 import { MapView } from '../common/MapView';
 import { Calendar } from '../calendar/Calendar';
@@ -44,8 +45,34 @@ export const SavList: React.FC = () => {
   const { createAppointment, updateAppointment, deleteAppointment } = useExtrabat();
   const { geocodeAddress } = useGeocoding();
   const { saveInterventionBatteries } = useBatteries();
-  const { requests, loading: requestsLoading, error, tablesExist, refetch } = useSavRequests(filters);
+  const { location: userLocation, loading: locationLoading, error: locationError, requestLocation } = useUserLocation();
+  const { requests: rawRequests, loading: requestsLoading, error, tablesExist, refetch } = useSavRequests(filters);
   const { statistics, loading: statsLoading, refetch: refetchStats } = useSavStatistics();
+
+  // Compute distances and filter/sort by proximity when near_me is active
+  const nearMeRadius = filters.near_me_radius || 5; // default 5km
+  const requests = React.useMemo(() => {
+    if (!filters.near_me || !userLocation) {
+      return rawRequests;
+    }
+
+    // Compute distance for each request and filter
+    const withDistance = rawRequests
+      .map(req => {
+        if (req.latitude && req.longitude) {
+          const dist = haversineDistance(
+            userLocation.lat, userLocation.lng,
+            req.latitude, req.longitude
+          );
+          return { ...req, _distance: dist };
+        }
+        return { ...req, _distance: Infinity };
+      })
+      .filter(req => req._distance <= nearMeRadius)
+      .sort((a, b) => a._distance - b._distance);
+
+    return withDistance;
+  }, [rawRequests, filters.near_me, userLocation, nearMeRadius]);
 
   // Debug logging
   console.log('=== SavList render ===');
@@ -1001,7 +1028,7 @@ export const SavList: React.FC = () => {
       </div>
 
       {/* Quick Filter Bar */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 -mb-1 scrollbar-hide">
         <button
           onClick={() => {
             setFilters(prev => ({
@@ -1009,12 +1036,12 @@ export const SavList: React.FC = () => {
               urgent: prev.urgent === true ? undefined : true
             }));
           }}
-          className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold transition-all border gap-1 ${filters.urgent === true
-              ? 'bg-red-100 text-red-800 border-red-300 shadow-sm'
-              : 'bg-white text-gray-600 border-gray-200 hover:bg-red-50 hover:border-red-200 hover:text-red-700'
+          className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold transition-all border gap-1 whitespace-nowrap shrink-0 ${filters.urgent === true
+            ? 'bg-red-100 text-red-800 border-red-300 shadow-sm'
+            : 'bg-white text-gray-600 border-gray-200 hover:bg-red-50 hover:border-red-200 hover:text-red-700'
             }`}
         >
-          <AlertOctagon className="h-3.5 w-3.5" />
+          <AlertOctagon className="h-3.5 w-3.5 shrink-0" />
           Urgent
         </button>
         <button
@@ -1024,12 +1051,12 @@ export const SavList: React.FC = () => {
               is_quick_intervention: prev.is_quick_intervention === true ? undefined : true
             }));
           }}
-          className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold transition-all border gap-1 ${filters.is_quick_intervention === true
-              ? 'bg-blue-100 text-blue-800 border-blue-300 shadow-sm'
-              : 'bg-white text-gray-600 border-gray-200 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700'
+          className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold transition-all border gap-1 whitespace-nowrap shrink-0 ${filters.is_quick_intervention === true
+            ? 'bg-blue-100 text-blue-800 border-blue-300 shadow-sm'
+            : 'bg-white text-gray-600 border-gray-200 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700'
             }`}
         >
-          <Zap className="h-3.5 w-3.5" />
+          <Zap className="h-3.5 w-3.5 shrink-0" />
           Rapide
         </button>
         <button
@@ -1039,12 +1066,12 @@ export const SavList: React.FC = () => {
               is_long_intervention: prev.is_long_intervention === true ? undefined : true
             }));
           }}
-          className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold transition-all border gap-1 ${filters.is_long_intervention === true
-              ? 'bg-purple-100 text-purple-800 border-purple-300 shadow-sm'
-              : 'bg-white text-gray-600 border-gray-200 hover:bg-purple-50 hover:border-purple-200 hover:text-purple-700'
+          className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold transition-all border gap-1 whitespace-nowrap shrink-0 ${filters.is_long_intervention === true
+            ? 'bg-purple-100 text-purple-800 border-purple-300 shadow-sm'
+            : 'bg-white text-gray-600 border-gray-200 hover:bg-purple-50 hover:border-purple-200 hover:text-purple-700'
             }`}
         >
-          <Clock className="h-3.5 w-3.5" />
+          <Clock className="h-3.5 w-3.5 shrink-0" />
           Long
         </button>
         <button
@@ -1052,24 +1079,83 @@ export const SavList: React.FC = () => {
             setFilters(prev => {
               const currentTypes = prev.sav_types || [];
               const hasPiles = currentTypes.includes('piles_batteries');
+              if (hasPiles) {
+                const remaining = currentTypes.filter(t => t !== 'piles_batteries');
+                return {
+                  ...prev,
+                  sav_types: remaining.length > 0 ? remaining : undefined
+                };
+              }
               return {
                 ...prev,
-                sav_types: hasPiles
-                  ? currentTypes.filter(t => t !== 'piles_batteries').length > 0
-                    ? currentTypes.filter(t => t !== 'piles_batteries')
-                    : undefined
-                  : [...currentTypes, 'piles_batteries']
+                sav_types: [...currentTypes, 'piles_batteries']
               };
             });
           }}
-          className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold transition-all border gap-1 ${filters.sav_types?.includes('piles_batteries')
-              ? 'bg-amber-100 text-amber-800 border-amber-300 shadow-sm'
-              : 'bg-white text-gray-600 border-gray-200 hover:bg-amber-50 hover:border-amber-200 hover:text-amber-700'
+          className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold transition-all border gap-1 whitespace-nowrap shrink-0 ${filters.sav_types?.includes('piles_batteries')
+            ? 'bg-amber-100 text-amber-800 border-amber-300 shadow-sm'
+            : 'bg-white text-gray-600 border-gray-200 hover:bg-amber-50 hover:border-amber-200 hover:text-amber-700'
             }`}
         >
-          <Battery className="h-3.5 w-3.5" />
+          <Battery className="h-3.5 w-3.5 shrink-0" />
           Piles/batteries
         </button>
+        <button
+          onClick={async () => {
+            if (filters.near_me) {
+              // Disable near_me filter
+              setFilters(prev => ({
+                ...prev,
+                near_me: undefined,
+                near_me_radius: undefined
+              }));
+            } else {
+              // Request location and enable filter
+              const loc = await requestLocation();
+              if (loc) {
+                setFilters(prev => ({
+                  ...prev,
+                  near_me: true,
+                  near_me_radius: 30
+                }));
+              }
+            }
+          }}
+          disabled={locationLoading}
+          className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold transition-all border gap-1 whitespace-nowrap shrink-0 ${filters.near_me
+            ? 'bg-teal-100 text-teal-800 border-teal-300 shadow-sm'
+            : 'bg-white text-gray-600 border-gray-200 hover:bg-teal-50 hover:border-teal-200 hover:text-teal-700'
+            }`}
+        >
+          {locationLoading ? (
+            <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-teal-600 border-t-transparent" />
+          ) : (
+            <Navigation className="h-3.5 w-3.5 shrink-0" />
+          )}
+          Proche de moi
+        </button>
+        {/* Radius selector when near_me is active */}
+        {filters.near_me && (
+          <select
+            value={filters.near_me_radius || 30}
+            onChange={(e) => setFilters(prev => ({
+              ...prev,
+              near_me_radius: parseInt(e.target.value)
+            }))}
+            className="px-2 py-1 rounded-full text-xs font-medium border border-teal-300 bg-teal-50 text-teal-800 focus:ring-1 focus:ring-teal-400 focus:outline-none shrink-0"
+          >
+            <option value={5}>5 km</option>
+            <option value={10}>10 km</option>
+            <option value={20}>20 km</option>
+            <option value={30}>30 km</option>
+            <option value={50}>50 km</option>
+            <option value={100}>100 km</option>
+          </select>
+        )}
+        {/* Location error message */}
+        {locationError && (
+          <span className="text-xs text-red-500 shrink-0">{locationError}</span>
+        )}
       </div>
 
       {/* Filters */}
@@ -1128,6 +1214,7 @@ export const SavList: React.FC = () => {
                   onToggleQuickIntervention={handleToggleQuickIntervention}
                   onToggleLongIntervention={handleToggleLongIntervention}
                   onRefresh={refetch}
+                  distance={(request as any)._distance}
                 />
               ))}
             </div>
@@ -1156,6 +1243,7 @@ export const SavList: React.FC = () => {
                   onToggleQuickIntervention={handleToggleQuickIntervention}
                   onToggleLongIntervention={handleToggleLongIntervention}
                   onRefresh={refetch}
+                  distance={(request as any)._distance}
                 />
               ))}
             </div>
