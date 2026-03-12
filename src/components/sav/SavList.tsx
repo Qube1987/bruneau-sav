@@ -932,38 +932,42 @@ export const SavList: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-3">
           <button
             onClick={toggleSavFilter}
-            className="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-colors border border-gray-300"
+            className="inline-flex items-center px-2 py-1.5 sm:px-4 sm:py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs sm:text-sm font-semibold rounded-lg transition-colors border border-gray-300"
           >
             {showOnlyMySav ? (
               <>
-                <Users className="h-5 w-5 mr-2" />
-                Tous les SAV
+                <Users className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Tous les SAV</span>
+                <span className="sm:hidden">Tous</span>
               </>
             ) : (
               <>
-                <User className="h-5 w-5 mr-2" />
-                Mes SAV
+                <User className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Mes SAV</span>
+                <span className="sm:hidden">Mes</span>
               </>
             )}
           </button>
 
           <button
             onClick={() => setShowSavForm(true)}
-            className="inline-flex items-center px-4 py-2 bg-primary-900 hover:bg-primary-800 text-white font-semibold rounded-lg transition-colors"
+            className="inline-flex items-center px-2 py-1.5 sm:px-4 sm:py-2 bg-primary-900 hover:bg-primary-800 text-white text-xs sm:text-sm font-semibold rounded-lg transition-colors"
           >
-            <Plus className="h-5 w-5 mr-2" />
-            Nouvelle demande
+            <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Nouvelle demande</span>
+            <span className="sm:hidden">Nouveau</span>
           </button>
 
           <button
             onClick={() => window.location.href = '/billing'}
-            className="inline-flex items-center px-4 py-2 bg-accent-500 hover:bg-accent-600 text-white font-semibold rounded-lg transition-colors"
+            className="inline-flex items-center px-2 py-1.5 sm:px-4 sm:py-2 bg-accent-500 hover:bg-accent-600 text-white text-xs sm:text-sm font-semibold rounded-lg transition-colors"
           >
-            <Receipt className="h-5 w-5 mr-2" />
-            À facturer
+            <Receipt className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">À facturer</span>
+            <span className="sm:hidden">Facturer</span>
           </button>
 
           {/* View Mode Toggle */}
@@ -1028,7 +1032,7 @@ export const SavList: React.FC = () => {
       </div>
 
       {/* Quick Filter Bar */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 -mb-1 scrollbar-hide">
+      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
         <button
           onClick={() => {
             setFilters(prev => ({
@@ -1036,12 +1040,12 @@ export const SavList: React.FC = () => {
               urgent: prev.urgent === true ? undefined : true
             }));
           }}
-          className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold transition-all border gap-1 whitespace-nowrap shrink-0 ${filters.urgent === true
+          className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold transition-all border gap-1 whitespace-nowrap ${filters.urgent === true
             ? 'bg-red-100 text-red-800 border-red-300 shadow-sm'
-            : 'bg-white text-gray-600 border-gray-200 hover:bg-red-50 hover:border-red-200 hover:text-red-700'
+            : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
             }`}
         >
-          <AlertOctagon className="h-3.5 w-3.5 shrink-0" />
+          <AlertOctagon className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
           Urgent
         </button>
         <button
@@ -1051,12 +1055,12 @@ export const SavList: React.FC = () => {
               is_quick_intervention: prev.is_quick_intervention === true ? undefined : true
             }));
           }}
-          className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold transition-all border gap-1 whitespace-nowrap shrink-0 ${filters.is_quick_intervention === true
+          className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold transition-all border gap-1 whitespace-nowrap ${filters.is_quick_intervention === true
             ? 'bg-blue-100 text-blue-800 border-blue-300 shadow-sm'
-            : 'bg-white text-gray-600 border-gray-200 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700'
+            : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
             }`}
         >
-          <Zap className="h-3.5 w-3.5 shrink-0" />
+          <Zap className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
           Rapide
         </button>
         <button
@@ -1066,12 +1070,12 @@ export const SavList: React.FC = () => {
               is_long_intervention: prev.is_long_intervention === true ? undefined : true
             }));
           }}
-          className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold transition-all border gap-1 whitespace-nowrap shrink-0 ${filters.is_long_intervention === true
+          className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold transition-all border gap-1 whitespace-nowrap ${filters.is_long_intervention === true
             ? 'bg-purple-100 text-purple-800 border-purple-300 shadow-sm'
-            : 'bg-white text-gray-600 border-gray-200 hover:bg-purple-50 hover:border-purple-200 hover:text-purple-700'
+            : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
             }`}
         >
-          <Clock className="h-3.5 w-3.5 shrink-0" />
+          <Clock className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
           Long
         </button>
         <button
@@ -1092,13 +1096,14 @@ export const SavList: React.FC = () => {
               };
             });
           }}
-          className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold transition-all border gap-1 whitespace-nowrap shrink-0 ${filters.sav_types?.includes('piles_batteries')
+          className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold transition-all border gap-1 whitespace-nowrap ${filters.sav_types?.includes('piles_batteries')
             ? 'bg-amber-100 text-amber-800 border-amber-300 shadow-sm'
-            : 'bg-white text-gray-600 border-gray-200 hover:bg-amber-50 hover:border-amber-200 hover:text-amber-700'
+            : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
             }`}
         >
-          <Battery className="h-3.5 w-3.5 shrink-0" />
-          Piles/batteries
+          <Battery className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
+          <span className="hidden sm:inline">Piles/batteries</span>
+          <span className="sm:hidden">Piles</span>
         </button>
         <button
           onClick={async () => {
@@ -1122,17 +1127,18 @@ export const SavList: React.FC = () => {
             }
           }}
           disabled={locationLoading}
-          className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold transition-all border gap-1 whitespace-nowrap shrink-0 ${filters.near_me
+          className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold transition-all border gap-1 whitespace-nowrap ${filters.near_me
             ? 'bg-teal-100 text-teal-800 border-teal-300 shadow-sm'
-            : 'bg-white text-gray-600 border-gray-200 hover:bg-teal-50 hover:border-teal-200 hover:text-teal-700'
+            : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
             }`}
         >
           {locationLoading ? (
-            <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-teal-600 border-t-transparent" />
+            <div className="animate-spin rounded-full h-3 w-3 sm:h-3.5 sm:w-3.5 border-2 border-teal-600 border-t-transparent" />
           ) : (
-            <Navigation className="h-3.5 w-3.5 shrink-0" />
+            <Navigation className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
           )}
-          Proche de moi
+          <span className="hidden sm:inline">Proche de moi</span>
+          <span className="sm:hidden">Proche</span>
         </button>
         {/* Radius selector when near_me is active */}
         {filters.near_me && (
@@ -1142,7 +1148,7 @@ export const SavList: React.FC = () => {
               ...prev,
               near_me_radius: parseInt(e.target.value)
             }))}
-            className="px-2 py-1 rounded-full text-xs font-medium border border-teal-300 bg-teal-50 text-teal-800 focus:ring-1 focus:ring-teal-400 focus:outline-none shrink-0"
+            className="px-2 py-1 rounded-full text-xs font-medium border border-teal-300 bg-teal-50 text-teal-800 focus:ring-1 focus:ring-teal-400 focus:outline-none"
           >
             <option value={5}>5 km</option>
             <option value={10}>10 km</option>
@@ -1154,7 +1160,7 @@ export const SavList: React.FC = () => {
         )}
         {/* Location error message */}
         {locationError && (
-          <span className="text-xs text-red-500 shrink-0">{locationError}</span>
+          <span className="text-xs text-red-500">{locationError}</span>
         )}
       </div>
 
