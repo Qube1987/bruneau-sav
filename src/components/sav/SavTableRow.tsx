@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, Clock, User, MapPin, Phone, AlertTriangle, CheckCircle, Archive, CreditCard as Edit, Calendar, FileText, Trash2, CreditCard as Edit3, X, Star, Package, Download, Mail, Zap, MessageSquare, History, List, Receipt, Navigation } from 'lucide-react';
+import { ChevronDown, ChevronRight, Clock, User, MapPin, Phone, AlertTriangle, CheckCircle, Archive, CreditCard as Edit, Calendar, FileText, Trash2, CreditCard as Edit3, X, Star, Package, Download, Mail, Zap, MessageSquare, History, List, Receipt, Navigation, Sparkles } from 'lucide-react';
 import { SavRequest, SAV_TYPES } from '../../types';
 import { formatDistance } from '../../hooks/useUserLocation';
 import { generateInterventionPDF } from '../../lib/pdfGenerator';
@@ -11,6 +11,7 @@ import { useSMS } from '../../hooks/useSMS';
 import { useBatteries } from '../../hooks/useBatteries';
 import { SavHistoryModal } from './SavHistoryModal';
 import { NomenclatureModal } from './NomenclatureModal';
+import { AiAssistantModal } from './AiAssistantModal';
 
 interface SavTableRowProps {
   request: SavRequest;
@@ -105,6 +106,7 @@ export const SavTableRow: React.FC<SavTableRowProps> = ({
   const [sendingSMS, setSendingSMS] = useState(false);
   const [historyModalOpen, setHistoryModalOpen] = useState(false);
   const [nomenclatureModalOpen, setNomenclatureModalOpen] = useState(false);
+  const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
   const [creatingQuote, setCreatingQuote] = useState(false);
   const { sendSMS } = useSMS();
   const { createExtrabatQuote, fetchInterventionBatteries } = useBatteries();
@@ -427,6 +429,17 @@ export const SavTableRow: React.FC<SavTableRowProps> = ({
                     Système
                   </h4>
                   <div className="flex items-center gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setAiAssistantOpen(true);
+                      }}
+                      className="ai-genie-button flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg transition-all"
+                      title="Assistant IA technique"
+                    >
+                      <Sparkles className="h-3.5 w-3.5" />
+                      Génie IA
+                    </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -779,6 +792,16 @@ export const SavTableRow: React.FC<SavTableRowProps> = ({
           clientName={request.client_name}
           ouvrageLibelle={request.site}
           onClose={() => setNomenclatureModalOpen(false)}
+        />
+      )}
+
+      {aiAssistantOpen && (
+        <AiAssistantModal
+          systemBrand={request.system_brand}
+          systemModel={request.system_model}
+          systemType={request.system_type}
+          problemDesc={request.problem_desc_reformule || request.problem_desc}
+          onClose={() => setAiAssistantOpen(false)}
         />
       )}
     </div>
