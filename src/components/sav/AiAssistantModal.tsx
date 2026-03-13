@@ -26,7 +26,7 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({
         defaultQuestion = `J'ai une question technique`;
     }
     if (problemDesc) {
-        defaultQuestion += `.\nProblème rencontré : ${problemDesc}\n\n`;
+        defaultQuestion += `.\nProblème rencontré : ${problemDesc}`;
     } else {
         defaultQuestion += ' : ';
     }
