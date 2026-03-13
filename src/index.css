@@ -108,6 +108,230 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* ==================== AI Assistant / Génie IA ==================== */
+
+/* Genie button on the SavCard */
+.ai-genie-button {
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  color: white;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+}
+
+.ai-genie-button:hover {
+  background: linear-gradient(135deg, #6d28d9, #9333ea);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.45);
+  transform: translateY(-1px);
+}
+
+.ai-genie-button::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(to right,
+      transparent 0%,
+      rgba(255, 255, 255, 0.15) 50%,
+      transparent 100%);
+  transform: rotate(30deg);
+  animation: ai-shimmer 3s infinite;
+}
+
+@keyframes ai-shimmer {
+  0% {
+    transform: translateX(-100%) rotate(30deg);
+  }
+
+  100% {
+    transform: translateX(100%) rotate(30deg);
+  }
+}
+
+/* Modal header gradient */
+.ai-assistant-header {
+  background: linear-gradient(135deg, #29235C 0%, #7c3aed 50%, #a855f7 100%);
+}
+
+/* Large genie icon in modal header */
+.ai-genie-icon-lg {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+}
+
+/* Ask button */
+.ai-ask-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
+}
+
+.ai-ask-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #6d28d9, #9333ea);
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.5);
+  transform: translateY(-1px);
+}
+
+.ai-ask-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Answer container */
+.ai-answer-container {
+  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 50%, #ede9fe 100%);
+  border: 1px solid #e9d5ff;
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+/* Answer text formatting */
+.ai-answer-text {
+  font-size: 0.875rem;
+  line-height: 1.7;
+  color: #374151;
+}
+
+.ai-answer-text .ai-h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0.75rem 0 0.5rem;
+}
+
+.ai-answer-text .ai-h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0.75rem 0 0.375rem;
+}
+
+.ai-answer-text .ai-h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0.5rem 0 0.375rem;
+}
+
+.ai-answer-text .ai-p {
+  margin: 0.25rem 0;
+}
+
+.ai-answer-text .ai-li,
+.ai-answer-text .ai-li-num {
+  margin-left: 1.25rem;
+  padding-left: 0.25rem;
+  list-style-position: outside;
+}
+
+.ai-answer-text .ai-li {
+  list-style-type: disc;
+}
+
+.ai-answer-text .ai-li-num {
+  list-style-type: decimal;
+}
+
+.ai-answer-text .ai-inline-code {
+  background: #e5e7eb;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-family: 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.8em;
+  color: #6d28d9;
+}
+
+.ai-answer-text strong {
+  color: #1f2937;
+}
+
+/* Loading dots */
+.ai-loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 0;
+}
+
+.ai-loading-dots {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.ai-loading-dots span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  animation: ai-bounce 1.4s infinite ease-in-out;
+}
+
+.ai-loading-dots span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.ai-loading-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.ai-loading-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes ai-bounce {
+
+  0%,
+  80%,
+  100% {
+    transform: scale(0.6);
+    opacity: 0.4;
+  }
+
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Slide-up animation for modal */
+@keyframes slide-up {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
 }

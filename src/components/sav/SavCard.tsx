@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, User, MapPin, Phone, AlertTriangle, CheckCircle, Archive, CreditCard as Edit, Calendar, FileText, Trash2, CreditCard as Edit3, X, Package, Download, Mail, Star, Zap, MessageSquare, History, List, Receipt, Navigation } from 'lucide-react';
+import { Clock, User, MapPin, Phone, AlertTriangle, CheckCircle, Archive, CreditCard as Edit, Calendar, FileText, Trash2, CreditCard as Edit3, X, Package, Download, Mail, Star, Zap, MessageSquare, History, List, Receipt, Navigation, Sparkles } from 'lucide-react';
 import { SavRequest, SAV_TYPES } from '../../types';
 import { formatDistance } from '../../hooks/useUserLocation';
 import { generateInterventionPDF } from '../../lib/pdfGenerator';
@@ -9,6 +9,7 @@ import { supabase } from '../../lib/supabase';
 import { useSMS } from '../../hooks/useSMS';
 import { useBatteries } from '../../hooks/useBatteries';
 import { SavHistoryModal } from './SavHistoryModal';
+import { AiAssistantModal } from './AiAssistantModal';
 import { NomenclatureModal } from './NomenclatureModal';
 
 interface SavCardProps {
@@ -104,6 +105,7 @@ export const SavCard: React.FC<SavCardProps> = ({
   const [creatingQuote, setCreatingQuote] = React.useState(false);
   const [historyModalOpen, setHistoryModalOpen] = React.useState(false);
   const [nomenclatureModalOpen, setNomenclatureModalOpen] = React.useState(false);
+  const [aiAssistantOpen, setAiAssistantOpen] = React.useState(false);
   const { sendSMS } = useSMS();
   const { createExtrabatQuote } = useBatteries();
 
@@ -223,8 +225,8 @@ export const SavCard: React.FC<SavCardProps> = ({
     <div
       data-sav-id={request.id}
       className={`relative rounded-lg shadow-sm hover:shadow-md transition-all overflow-hidden ${request.priority
-          ? 'border-l-4 border-blue-500 bg-white'
-          : 'border border-gray-200 bg-white'
+        ? 'border-l-4 border-blue-500 bg-white'
+        : 'border border-gray-200 bg-white'
         }`}>
       <div className="p-3 sm:p-4">
         {/* Header */}
@@ -250,8 +252,8 @@ export const SavCard: React.FC<SavCardProps> = ({
               <button
                 onClick={() => onTogglePriority(request.id)}
                 className={`btn-icon transition-colors ${request.priority
-                    ? 'text-blue-600 bg-blue-50 hover:bg-blue-100'
-                    : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'
+                  ? 'text-blue-600 bg-blue-50 hover:bg-blue-100'
+                  : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'
                   }`}
                 title={request.priority ? 'Retirer de prioritaire' : 'Marquer comme prioritaire'}
               >
@@ -262,8 +264,8 @@ export const SavCard: React.FC<SavCardProps> = ({
               <button
                 onClick={() => onToggleQuickIntervention(request.id)}
                 className={`btn-icon transition-colors ${request.is_quick_intervention
-                    ? 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100'
-                    : 'text-gray-400 hover:text-emerald-600 hover:bg-emerald-50'
+                  ? 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100'
+                  : 'text-gray-400 hover:text-emerald-600 hover:bg-emerald-50'
                   }`}
                 title={request.is_quick_intervention ? 'Retirer intervention rapide' : 'Marquer comme intervention rapide'}
               >
@@ -274,8 +276,8 @@ export const SavCard: React.FC<SavCardProps> = ({
               <button
                 onClick={() => onToggleLongIntervention(request.id)}
                 className={`btn-icon transition-colors ${request.is_long_intervention
-                    ? 'text-amber-600 bg-amber-50 hover:bg-amber-100'
-                    : 'text-gray-400 hover:text-amber-600 hover:bg-amber-50'
+                  ? 'text-amber-600 bg-amber-50 hover:bg-amber-100'
+                  : 'text-gray-400 hover:text-amber-600 hover:bg-amber-50'
                   }`}
                 title={request.is_long_intervention ? 'Retirer intervention longue' : 'Marquer comme intervention longue'}
               >
@@ -360,6 +362,14 @@ export const SavCard: React.FC<SavCardProps> = ({
                 <span className="text-sm font-medium">Système</span>
               </div>
               <div className="flex flex-col gap-1.5">
+                <button
+                  onClick={() => setAiAssistantOpen(true)}
+                  className="ai-genie-button flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg transition-all"
+                  title="Assistant IA technique"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span>Génie IA</span>
+                </button>
                 <button
                   onClick={() => setHistoryModalOpen(true)}
                   className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-100 hover:bg-blue-200 rounded-lg transition-colors"
@@ -685,6 +695,16 @@ export const SavCard: React.FC<SavCardProps> = ({
           extrabatId={request.extrabat_id}
           ouvrageId={request.extrabat_ouvrage_id}
           onClose={() => setNomenclatureModalOpen(false)}
+        />
+      )}
+
+      {aiAssistantOpen && (
+        <AiAssistantModal
+          systemBrand={request.system_brand}
+          systemModel={request.system_model}
+          systemType={request.system_type}
+          problemDesc={request.problem_desc_reformule || request.problem_desc}
+          onClose={() => setAiAssistantOpen(false)}
         />
       )}
     </div>
