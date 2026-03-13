@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Send, Sparkles, Loader2, Copy, Check, RotateCcw } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
 
 interface AiAssistantModalProps {
     systemBrand?: string;
@@ -18,9 +17,19 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({
     onClose,
 }) => {
     const systemLabel = [systemBrand, systemModel].filter(Boolean).join(' ');
-    const defaultQuestion = systemLabel
-        ? `J'ai une question technique sur ${systemLabel} : `
-        : "J'ai une question technique : ";
+
+    // Build pre-filled prompt with system info and problem description
+    let defaultQuestion = '';
+    if (systemLabel) {
+        defaultQuestion = `J'ai une question technique sur ${systemLabel}`;
+    } else {
+        defaultQuestion = `J'ai une question technique`;
+    }
+    if (problemDesc) {
+        defaultQuestion += `.\nProblème rencontré : ${problemDesc}\n\nMa question : `;
+    } else {
+        defaultQuestion += ' : ';
+    }
 
     const [question, setQuestion] = useState(defaultQuestion);
     const [answer, setAnswer] = useState<string | null>(null);
@@ -53,26 +62,22 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({
         setAnswer(null);
 
         try {
-            const { data: { session } } = await supabase.auth.getSession();
+            const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-technical-assistant`;
 
-            const response = await fetch(
-                `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-technical-assistant`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${session?.access_token || import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-                        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-                    },
-                    body: JSON.stringify({
-                        question,
-                        system_brand: systemBrand,
-                        system_model: systemModel,
-                        system_type: systemType,
-                        problem_desc: problemDesc,
-                    }),
-                }
-            );
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    question,
+                    system_brand: systemBrand,
+                    system_model: systemModel,
+                    system_type: systemType,
+                    problem_desc: problemDesc,
+                }),
+            });
 
             const data = await response.json();
 
