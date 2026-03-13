@@ -363,14 +363,6 @@ export const SavCard: React.FC<SavCardProps> = ({
               </div>
               <div className="flex flex-col gap-1.5">
                 <button
-                  onClick={() => setAiAssistantOpen(true)}
-                  className="ai-genie-button flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg transition-all"
-                  title="Assistant IA technique"
-                >
-                  <Sparkles className="h-3.5 w-3.5" />
-                  <span>Génie IA</span>
-                </button>
-                <button
                   onClick={() => setHistoryModalOpen(true)}
                   className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-100 hover:bg-blue-200 rounded-lg transition-colors"
                   title="Voir l'historique SAV complet"
@@ -406,7 +398,17 @@ export const SavCard: React.FC<SavCardProps> = ({
         {/* Problem */}
         <div className="space-y-3 mb-4">
           <div>
-            <span className="text-sm font-medium text-gray-700 block mb-1">Problème:</span>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-sm font-medium text-gray-700">Problème:</span>
+              <button
+                onClick={() => setAiAssistantOpen(true)}
+                className="ai-genie-button flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg transition-all"
+                title="Assistant IA technique"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>Génie IA</span>
+              </button>
+            </div>
             <p className="text-sm text-gray-900 bg-gray-50 p-3 rounded-lg break-words">{request.problem_desc_reformule || request.problem_desc}</p>
           </div>
         </div>

@@ -432,17 +432,6 @@ export const SavTableRow: React.FC<SavTableRowProps> = ({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        setAiAssistantOpen(true);
-                      }}
-                      className="ai-genie-button flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg transition-all"
-                      title="Assistant IA technique"
-                    >
-                      <Sparkles className="h-3.5 w-3.5" />
-                      Génie IA
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
                         setHistoryModalOpen(true);
                       }}
                       className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors"
@@ -505,7 +494,20 @@ export const SavTableRow: React.FC<SavTableRowProps> = ({
 
           {/* Full Problem Description */}
           <div className="mb-4">
-            <h4 className="font-medium text-gray-900 mb-2">Description du problème</h4>
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="font-medium text-gray-900">Description du problème</h4>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setAiAssistantOpen(true);
+                }}
+                className="ai-genie-button flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg transition-all"
+                title="Assistant IA technique"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                Génie IA
+              </button>
+            </div>
             <p className="text-sm text-gray-700 bg-white p-3 rounded border">{request.problem_desc_reformule || request.problem_desc}</p>
           </div>
 
