@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
+// Clé VAPID publique — DOIT correspondre à la clé privée configurée dans les secrets Supabase Edge Functions
+const VAPID_PUBLIC_KEY = 'BH2A-EIhJE7x_DcWaYZoIc_HemxXXnPSc1r0wFjNwvkjUFpzT5IXrPHvT_ck2zkoIi8YwrUdIYRJ0rjmwUg-8ws';
+
 export function usePushNotifications() {
     const [permission, setPermission] = useState<NotificationPermission>('default');
     const [isSubscribed, setIsSubscribed] = useState(false);
@@ -32,23 +35,39 @@ export function usePushNotifications() {
 
         setLoading(true);
         try {
-            const registration = await navigator.serviceWorker.ready;
-
-            // La clé publique VAPID doit être passée ici
-            const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-            if (!vapidPublicKey) {
-                throw new Error('Clé publique VAPID manquante (VITE_VAPID_PUBLIC_KEY)');
+            const permission = await Notification.requestPermission();
+            console.log('[Push SAV] Permission:', permission);
+            if (permission !== 'granted') {
+                alert('Notifications refusées. Activez-les dans les paramètres du navigateur.');
+                setLoading(false);
+                return;
             }
 
+            const registration = await navigator.serviceWorker.ready;
+
+            // Supprimer l'ancienne subscription (évite les problèmes de VAPID mismatch)
+            const existing = await registration.pushManager.getSubscription();
+            if (existing) {
+                console.log('[Push SAV] Suppression ancienne subscription...');
+                const oldJson = existing.toJSON();
+                await supabase.from('push_subscriptions')
+                    .delete()
+                    .eq('endpoint', oldJson.endpoint!);
+                await existing.unsubscribe();
+            }
+
+            // Créer une nouvelle subscription avec la bonne clé VAPID
+            console.log('[Push SAV] Création nouvelle subscription...');
             const subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
-                applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+                applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
             });
 
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) throw new Error('Utilisateur non connecté');
 
             const sub = subscription.toJSON();
+            console.log('[Push SAV] Endpoint:', sub.endpoint?.substring(0, 60));
 
             const { error } = await supabase.from('push_subscriptions').upsert({
                 user_id: user.id,
@@ -62,10 +81,11 @@ export function usePushNotifications() {
 
             if (error) throw error;
 
+            console.log('[Push SAV] ✅ Abonnement sauvegardé !');
             setIsSubscribed(true);
             setPermission('granted');
         } catch (err: any) {
-            console.error('Erreur abonnement push:', err);
+            console.error('[Push SAV] ❌ Erreur abonnement push:', err);
             alert(`Erreur d'abonnement : ${err.message}`);
         } finally {
             setLoading(false);
