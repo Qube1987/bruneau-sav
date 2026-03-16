@@ -20,31 +20,54 @@ registerRoute(
     })
 );
 
-// Gérer la réception d'une notification push
+// ===== Installation : prendre le contrôle immédiatement =====
+self.addEventListener('install', () => {
+    // Force le nouveau SW à remplacer l'ancien immédiatement
+    self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+    // Prendre le contrôle de tous les clients immédiatement
+    event.waitUntil(self.clients.claim());
+});
+
+// ===== Push Notifications (fonctionne même quand l'app est fermée) =====
 self.addEventListener('push', (event) => {
     if (!event.data) return;
 
     try {
         const data = event.data.json();
-        const options = {
+        const options: NotificationOptions = {
             body: data.body,
             icon: data.icon || '/icons/icon-192.png',
             badge: data.badge || '/icons/icon-192.png',
-            tag: data.tag,
+            tag: data.tag || 'sav-notification',
             data: data.data, // Contient l'URL de redirection
-            vibrate: [100, 50, 100],
-            actions: data.actions || []
+            vibrate: [200, 100, 200],
+            requireInteraction: true, // La notification reste affichée jusqu'au clic
+            actions: data.actions || [],
+            // Relancer l'app si elle est en arrière-plan
+            renotify: !!data.tag, // Alerter même si une notif avec le même tag existe
         };
 
         event.waitUntil(
-            self.registration.showNotification(data.title, options)
+            self.registration.showNotification(data.title || 'SAV Bruneau', options)
         );
     } catch (err) {
-        console.error('Erreur lors de la réception du push:', err);
+        // Fallback si le JSON est invalide
+        const text = event.data?.text() || 'Nouvelle notification';
+        event.waitUntil(
+            self.registration.showNotification('SAV Bruneau', {
+                body: text,
+                icon: '/icons/icon-192.png',
+                badge: '/icons/icon-192.png',
+                requireInteraction: true,
+            })
+        );
     }
 });
 
-// Gérer le clic sur la notification → ouvrir l'app sur le bon SAV
+// ===== Clic sur la notification → ouvrir l'app sur le bon SAV =====
 self.addEventListener('notificationclick', (event: any) => {
     event.notification.close();
     const url = event.notification.data?.url || '/';
@@ -58,6 +81,7 @@ self.addEventListener('notificationclick', (event: any) => {
                     if ('navigate' in client) {
                         return client.navigate(url);
                     }
+                    return;
                 }
             }
             // Sinon on ouvre une nouvelle fenêtre
