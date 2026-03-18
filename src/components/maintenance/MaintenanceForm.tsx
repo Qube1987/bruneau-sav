@@ -156,7 +156,7 @@ export const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
             endpoint: 'clients',
             params: {
               q: currentName,
-              include: 'telephone,adresse'
+              include: 'telephone,adresse,adresse.interlocuteur'
             }
           }
         });
@@ -182,9 +182,25 @@ export const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
     setShowInlineResults(false);
     setInlineExtrabatResults([]);
 
-    // Fill phone
+    // Fill phone - check client first, then interlocuteurs
+    let phoneSet = false;
     if (client.telephones && client.telephones.length > 0) {
       setValue('phone', client.telephones[0].number);
+      phoneSet = true;
+    }
+    if (!phoneSet && client.adresses) {
+      for (const addr of client.adresses) {
+        if (addr.interlocuteur && Array.isArray(addr.interlocuteur)) {
+          for (const interloc of addr.interlocuteur) {
+            if (interloc.telephones?.length > 0) {
+              setValue('phone', interloc.telephones[0].number);
+              phoneSet = true;
+              break;
+            }
+          }
+        }
+        if (phoneSet) break;
+      }
     }
 
     // Fill address

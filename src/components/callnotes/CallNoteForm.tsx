@@ -46,7 +46,7 @@ export function CallNoteForm({ onSubmit, onCancel, editingNote }: CallNoteFormPr
           endpoint: 'clients',
           params: {
             q: query,
-            include: 'telephone,adresse'
+            include: 'telephone,adresse,adresse.interlocuteur'
           }
         }
       });
@@ -66,6 +66,25 @@ export function CallNoteForm({ onSubmit, onCancel, editingNote }: CallNoteFormPr
     } finally {
       setLoadingExtrabat(false);
     }
+  };
+
+  // Collect first available phone from client or interlocuteurs
+  const getFirstPhone = (client: any): string => {
+    if (client.telephones?.length > 0) {
+      return client.telephones[0].number;
+    }
+    if (client.adresses) {
+      for (const addr of client.adresses) {
+        if (addr.interlocuteur && Array.isArray(addr.interlocuteur)) {
+          for (const interloc of addr.interlocuteur) {
+            if (interloc.telephones?.length > 0) {
+              return interloc.telephones[0].number;
+            }
+          }
+        }
+      }
+    }
+    return '';
   };
 
   useEffect(() => {
@@ -94,8 +113,9 @@ export function CallNoteForm({ onSubmit, onCancel, editingNote }: CallNoteFormPr
     setExtrabatClients([]);
     setClientName(fullName);
 
-    if (client.telephones && client.telephones.length > 0) {
-      setClientPhone(client.telephones[0].number);
+    const phone = getFirstPhone(client);
+    if (phone) {
+      setClientPhone(phone);
     }
   };
 

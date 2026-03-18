@@ -138,7 +138,7 @@ export const ClientRecordsPage: React.FC = () => {
         try {
             const [clientRes, savRes, maintRes] = await Promise.all([
                 supabase.functions.invoke('extrabat-proxy', {
-                    body: { endpoint: `clients/${id}`, params: { include: 'telephone,adresse' } }
+                    body: { endpoint: `clients/${id}`, params: { include: 'telephone,adresse,adresse.interlocuteur' } }
                 }),
                 supabase
                     .from('sav_requests')

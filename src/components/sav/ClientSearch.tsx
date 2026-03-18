@@ -1,6 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Search, User, Phone, MapPin, Building, ChevronDown, ChevronUp, Mail } from 'lucide-react';
+import { Search, User, Phone, MapPin, Building, ChevronDown, ChevronUp, Mail, Users } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+
+interface ExtrabatInterlocuteur {
+  id: number;
+  nom?: string;
+  prenom?: string;
+  civilite?: string | { id: number; libelle: string };
+  fonction?: string;
+  telephones?: Array<{
+    id: number;
+    number: string;
+    type: string | { id: number; libelle: string };
+  }>;
+  email?: string;
+}
 
 interface ExtrabatClient {
   nom: string;
@@ -29,6 +43,7 @@ interface ExtrabatClient {
     ville: string;
     pays: string;
     type: string | { id: number; libelle: string };
+    interlocuteur?: ExtrabatInterlocuteur[];
   }>;
   ouvrage?: Array<{
     id: number;
@@ -47,6 +62,14 @@ interface ExtrabatClient {
       archived: boolean;
     };
   }>;
+}
+
+interface PhoneOption {
+  number: string;
+  label: string;
+  source: 'client' | 'interlocuteur';
+  interlocuteurName?: string;
+  addressLabel?: string;
 }
 
 interface ClientSearchProps {
@@ -71,6 +94,7 @@ export const ClientSearch: React.FC<ClientSearchProps> = ({ onClientSelect }) =>
   const [selectedOuvrage, setSelectedOuvrage] = useState<number | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [availableEmails, setAvailableEmails] = useState<string[]>([]);
+  const [availablePhones, setAvailablePhones] = useState<PhoneOption[]>([]);
 
   const searchClients = async (query: string) => {
     if (!query.trim() || query.length < 2) {
@@ -85,7 +109,7 @@ export const ClientSearch: React.FC<ClientSearchProps> = ({ onClientSelect }) =>
           endpoint: 'clients',
           params: {
             q: query,
-            include: 'telephone,adresse,ouvrage'
+            include: 'telephone,adresse,adresse.interlocuteur,ouvrage'
           }
         }
       });
@@ -130,6 +154,58 @@ export const ClientSearch: React.FC<ClientSearchProps> = ({ onClientSelect }) =>
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  // Collect all phone numbers from client and address interlocuteurs
+  const collectAllPhones = (client: ExtrabatClient): PhoneOption[] => {
+    const phones: PhoneOption[] = [];
+    const seenNumbers = new Set<string>();
+
+    // 1. Phones from client file
+    if (client.telephones) {
+      client.telephones.forEach(tel => {
+        const normalized = tel.number.replace(/\s/g, '');
+        if (!seenNumbers.has(normalized)) {
+          seenNumbers.add(normalized);
+          const typeLabel = typeof tel.type === 'object' ? tel.type.libelle : (tel.type || '');
+          phones.push({
+            number: tel.number,
+            label: `${tel.number} — Fiche client${typeLabel ? ` (${typeLabel})` : ''}`,
+            source: 'client',
+          });
+        }
+      });
+    }
+
+    // 2. Phones from address interlocuteurs
+    if (client.adresses) {
+      client.adresses.forEach(addr => {
+        if (addr.interlocuteur && Array.isArray(addr.interlocuteur)) {
+          addr.interlocuteur.forEach(interloc => {
+            if (interloc.telephones) {
+              interloc.telephones.forEach(tel => {
+                const normalized = tel.number.replace(/\s/g, '');
+                if (!seenNumbers.has(normalized)) {
+                  seenNumbers.add(normalized);
+                  const interlocName = [interloc.prenom, interloc.nom].filter(Boolean).join(' ');
+                  const addrLabel = [addr.codePostal, addr.ville].filter(Boolean).join(' ');
+                  const typeLabel = typeof tel.type === 'object' ? tel.type.libelle : (tel.type || '');
+                  phones.push({
+                    number: tel.number,
+                    label: `${tel.number} — ${interlocName || 'Interlocuteur'}${addrLabel ? ` (${addrLabel})` : ''}${typeLabel ? ` [${typeLabel}]` : ''}`,
+                    source: 'interlocuteur',
+                    interlocuteurName: interlocName,
+                    addressLabel: addrLabel,
+                  });
+                }
+              });
+            }
+          });
+        }
+      });
+    }
+
+    return phones;
+  };
+
   const handleClientSelect = (client: ExtrabatClient) => {
     setSelectedClient(client);
     setShowDetails(true);
@@ -146,9 +222,16 @@ export const ClientSearch: React.FC<ClientSearchProps> = ({ onClientSelect }) =>
     if (emails.length > 0) {
       setSelectedEmail(emails[0]);
     }
-    if (client.telephones && client.telephones.length > 0) {
-      setSelectedPhone(client.telephones[0].number);
+
+    // Collect all phones (client + interlocuteurs)
+    const allPhones = collectAllPhones(client);
+    setAvailablePhones(allPhones);
+    if (allPhones.length > 0) {
+      setSelectedPhone(allPhones[0].number);
+    } else {
+      setSelectedPhone('');
     }
+
     if (client.adresses && client.adresses.length > 0) {
       const addr = client.adresses[0];
       setSelectedAddress(`${addr.description}, ${addr.codePostal} ${addr.ville}`);
@@ -181,6 +264,7 @@ export const ClientSearch: React.FC<ClientSearchProps> = ({ onClientSelect }) =>
     setSelectedPhone('');
     setSelectedAddress('');
     setSelectedOuvrage(null);
+    setAvailablePhones([]);
     setAvailableEmails([]);
   };
 
@@ -191,6 +275,7 @@ export const ClientSearch: React.FC<ClientSearchProps> = ({ onClientSelect }) =>
     setSelectedPhone('');
     setSelectedAddress('');
     setSelectedOuvrage(null);
+    setAvailablePhones([]);
     setAvailableEmails([]);
   };
 
@@ -235,6 +320,16 @@ export const ClientSearch: React.FC<ClientSearchProps> = ({ onClientSelect }) =>
                       📞 {client.telephones[0].number}
                     </div>
                   )}
+                  {(() => {
+                    // Count interlocuteurs from addresses
+                    const interlocCount = client.adresses?.reduce((count, addr) =>
+                      count + (addr.interlocuteur?.length || 0), 0) || 0;
+                    return interlocCount > 0 ? (
+                      <div className="text-xs text-blue-600 mt-0.5">
+                        👥 {interlocCount} interlocuteur{interlocCount > 1 ? 's' : ''}
+                      </div>
+                    ) : null;
+                  })()}
                   {client.adresses && Array.isArray(client.adresses) && client.adresses.length > 0 && (
                     <div className="text-xs text-gray-500">
                       📍 {client.adresses[0].codePostal} {client.adresses[0].ville}
@@ -301,12 +396,23 @@ export const ClientSearch: React.FC<ClientSearchProps> = ({ onClientSelect }) =>
             </div>
           )}
 
-          {/* Phone Selection */}
-          {selectedClient.telephones && selectedClient.telephones.length > 0 && (
+          {/* Phone Selection - All phones from client + interlocuteurs */}
+          {availablePhones.length > 0 && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <Phone className="h-4 w-4 inline mr-1" />
                 Téléphone
+                {availablePhones.length > 1 && (
+                  <span className="ml-2 text-xs text-orange-600 font-normal">
+                    {availablePhones.length} numéros disponibles — sélectionnez le bon
+                  </span>
+                )}
+                {availablePhones.some(p => p.source === 'interlocuteur') && (
+                  <span className="ml-1 text-xs text-blue-600 font-normal">
+                    <Users className="h-3 w-3 inline mr-0.5" />
+                    incl. interlocuteurs
+                  </span>
+                )}
               </label>
               <select
                 value={selectedPhone}
@@ -314,11 +420,26 @@ export const ClientSearch: React.FC<ClientSearchProps> = ({ onClientSelect }) =>
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="">Aucun téléphone</option>
-                {selectedClient.telephones.map((tel, index) => (
-                  <option key={index} value={tel.number}>
-                    {tel.number} ({typeof tel.type === 'object' ? tel.type.libelle : (tel.type || 'Type inconnu')})
-                  </option>
-                ))}
+                {/* Client phones */}
+                {availablePhones.filter(p => p.source === 'client').length > 0 && (
+                  <optgroup label="📋 Fiche client">
+                    {availablePhones.filter(p => p.source === 'client').map((phone, index) => (
+                      <option key={`client-${index}`} value={phone.number}>
+                        {phone.label}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+                {/* Interlocuteur phones */}
+                {availablePhones.filter(p => p.source === 'interlocuteur').length > 0 && (
+                  <optgroup label="👥 Interlocuteurs (adresses)">
+                    {availablePhones.filter(p => p.source === 'interlocuteur').map((phone, index) => (
+                      <option key={`interloc-${index}`} value={phone.number}>
+                        {phone.label}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
               </select>
             </div>
           )}

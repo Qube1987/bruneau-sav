@@ -49,7 +49,7 @@ export const GlobalSavSearch: React.FC = () => {
         setShowDropdown(true);
         try {
             const { data, error } = await supabase.functions.invoke('extrabat-proxy', {
-                body: { endpoint: 'clients', params: { q, include: 'telephone,adresse' } }
+                body: { endpoint: 'clients', params: { q, include: 'telephone,adresse,adresse.interlocuteur' } }
             });
             if (error) throw error;
             if (data.success) setClients((data.data || []).slice(0, 10));
