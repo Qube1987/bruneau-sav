@@ -75,11 +75,11 @@ export function CallNoteForm({ onSubmit, onCancel, editingNote }: CallNoteFormPr
     }
     if (client.adresses) {
       for (const addr of client.adresses) {
-        if (addr.interlocuteur && Array.isArray(addr.interlocuteur)) {
-          for (const interloc of addr.interlocuteur) {
-            if (interloc.telephones?.length > 0) {
-              return interloc.telephones[0].number;
-            }
+        if (addr.interlocuteurs && Array.isArray(addr.interlocuteurs)) {
+          for (const interloc of addr.interlocuteurs) {
+            if (interloc.telephone) return interloc.telephone;
+            if (interloc.telephone2) return interloc.telephone2;
+            if (interloc.telephone3) return interloc.telephone3;
           }
         }
       }

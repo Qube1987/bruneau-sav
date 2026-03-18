@@ -190,10 +190,11 @@ export const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
     }
     if (!phoneSet && client.adresses) {
       for (const addr of client.adresses) {
-        if (addr.interlocuteur && Array.isArray(addr.interlocuteur)) {
-          for (const interloc of addr.interlocuteur) {
-            if (interloc.telephones?.length > 0) {
-              setValue('phone', interloc.telephones[0].number);
+        if (addr.interlocuteurs && Array.isArray(addr.interlocuteurs)) {
+          for (const interloc of addr.interlocuteurs) {
+            const phone = interloc.telephone || interloc.telephone2 || interloc.telephone3;
+            if (phone) {
+              setValue('phone', phone);
               phoneSet = true;
               break;
             }

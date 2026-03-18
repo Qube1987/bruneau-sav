@@ -4,16 +4,14 @@ import { supabase } from '../../lib/supabase';
 
 interface ExtrabatInterlocuteur {
   id: number;
-  nom?: string;
-  prenom?: string;
-  civilite?: string | { id: number; libelle: string };
-  fonction?: string;
-  telephones?: Array<{
-    id: number;
-    number: string;
-    type: string | { id: number; libelle: string };
-  }>;
-  email?: string;
+  nom: string;
+  telephone: string;
+  telephone2: string;
+  telephone3: string;
+  email: string;
+  fonction: string;
+  obs: string;
+  fax: string;
 }
 
 interface ExtrabatClient {
@@ -43,7 +41,7 @@ interface ExtrabatClient {
     ville: string;
     pays: string;
     type: string | { id: number; libelle: string };
-    interlocuteur?: ExtrabatInterlocuteur[];
+    interlocuteurs?: ExtrabatInterlocuteur[];
   }>;
   ouvrage?: Array<{
     id: number;
@@ -154,50 +152,58 @@ export const ClientSearch: React.FC<ClientSearchProps> = ({ onClientSelect }) =>
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  // Extract site name from address description (first line)
+  const getSiteName = (description: string): string => {
+    const firstLine = description.split('\n')[0].trim();
+    return firstLine || description;
+  };
+
   // Collect all phone numbers from client and address interlocuteurs
   const collectAllPhones = (client: ExtrabatClient): PhoneOption[] => {
     const phones: PhoneOption[] = [];
     const seenNumbers = new Set<string>();
 
-    // 1. Phones from client file
+    const addPhone = (number: string, label: string, source: 'client' | 'interlocuteur', interlocName?: string, addrLabel?: string) => {
+      if (!number || !number.trim()) return;
+      const normalized = number.replace(/\s/g, '');
+      if (seenNumbers.has(normalized)) return;
+      seenNumbers.add(normalized);
+      phones.push({ number, label, source, interlocuteurName: interlocName, addressLabel: addrLabel });
+    };
+
+    // 1. Phones from client file (telephones array)
     if (client.telephones) {
       client.telephones.forEach(tel => {
-        const normalized = tel.number.replace(/\s/g, '');
-        if (!seenNumbers.has(normalized)) {
-          seenNumbers.add(normalized);
-          const typeLabel = typeof tel.type === 'object' ? tel.type.libelle : (tel.type || '');
-          phones.push({
-            number: tel.number,
-            label: `${tel.number} — Fiche client${typeLabel ? ` (${typeLabel})` : ''}`,
-            source: 'client',
-          });
-        }
+        const typeLabel = typeof tel.type === 'object' ? tel.type.libelle : (tel.type || '');
+        addPhone(
+          tel.number,
+          `Fiche client${typeLabel ? ` (${typeLabel})` : ''} — ${tel.number}`,
+          'client'
+        );
       });
     }
 
     // 2. Phones from address interlocuteurs
     if (client.adresses) {
       client.adresses.forEach(addr => {
-        if (addr.interlocuteur && Array.isArray(addr.interlocuteur)) {
-          addr.interlocuteur.forEach(interloc => {
-            if (interloc.telephones) {
-              interloc.telephones.forEach(tel => {
-                const normalized = tel.number.replace(/\s/g, '');
-                if (!seenNumbers.has(normalized)) {
-                  seenNumbers.add(normalized);
-                  const interlocName = [interloc.prenom, interloc.nom].filter(Boolean).join(' ');
-                  const addrLabel = [addr.codePostal, addr.ville].filter(Boolean).join(' ');
-                  const typeLabel = typeof tel.type === 'object' ? tel.type.libelle : (tel.type || '');
-                  phones.push({
-                    number: tel.number,
-                    label: `${tel.number} — ${interlocName || 'Interlocuteur'}${addrLabel ? ` (${addrLabel})` : ''}${typeLabel ? ` [${typeLabel}]` : ''}`,
-                    source: 'interlocuteur',
-                    interlocuteurName: interlocName,
-                    addressLabel: addrLabel,
-                  });
-                }
-              });
-            }
+        if (addr.interlocuteurs && Array.isArray(addr.interlocuteurs)) {
+          const siteName = getSiteName(addr.description);
+          addr.interlocuteurs.forEach(interloc => {
+            // telephone, telephone2, telephone3 are direct string fields
+            const phonesToCheck = [
+              interloc.telephone,
+              interloc.telephone2,
+              interloc.telephone3,
+            ];
+            phonesToCheck.forEach(phone => {
+              addPhone(
+                phone,
+                `${interloc.nom} (${siteName}) — ${phone}`,
+                'interlocuteur',
+                interloc.nom,
+                siteName
+              );
+            });
           });
         }
       });
@@ -323,7 +329,7 @@ export const ClientSearch: React.FC<ClientSearchProps> = ({ onClientSelect }) =>
                   {(() => {
                     // Count interlocuteurs from addresses
                     const interlocCount = client.adresses?.reduce((count, addr) =>
-                      count + (addr.interlocuteur?.length || 0), 0) || 0;
+                      count + (addr.interlocuteurs?.length || 0), 0) || 0;
                     return interlocCount > 0 ? (
                       <div className="text-xs text-blue-600 mt-0.5">
                         👥 {interlocCount} interlocuteur{interlocCount > 1 ? 's' : ''}
