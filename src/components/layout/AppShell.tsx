@@ -296,14 +296,26 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                 )}
               </button>
               <div className="flex items-center min-w-0">
-                <div className="flex items-center gap-2 flex-shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (location.pathname === '/') {
+                      // Force full reload to reset any open forms
+                      window.location.href = '/';
+                    } else {
+                      navigate('/');
+                    }
+                  }}
+                  className="flex items-center gap-2 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                  title="Retour à l'accueil"
+                >
                   <img
                     src="/BRUNEAU_PROTECTION_LOGO_QUADRI.png"
                     alt="Bruneau Protection"
                     className="h-8 w-auto"
                   />
                   <span className="text-xl font-bold text-primary-900 hidden sm:block">SAV</span>
-                </div>
+                </button>
               </div>
             </div>
 
