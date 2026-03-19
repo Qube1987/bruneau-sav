@@ -603,7 +603,8 @@ export const SavList: React.FC = () => {
         .from('sav_requests')
         .update({
           status: 'terminee',
-          resolved_at: new Date().toISOString()
+          resolved_at: new Date().toISOString(),
+          billing_status: 'to_bill'
         })
         .eq('id', id);
 
@@ -726,6 +727,7 @@ export const SavList: React.FC = () => {
     const sav = requests.find(r => r.id === savRequestId);
     const intervention = sav?.interventions?.find(i => i.id === interventionId);
     if (intervention) {
+      setShowReportForm(false);
       setEditingIntervention(intervention);
       setSelectedSavId(savRequestId);
       setShowInterventionForm(true);
@@ -758,6 +760,7 @@ export const SavList: React.FC = () => {
     }
 
     console.log('Setting showReportForm to true');
+    setShowInterventionForm(false);
     setEditingIntervention(intervention);
     setSelectedSavId(savRequestId);
     setShowReportForm(true);
@@ -1194,6 +1197,8 @@ export const SavList: React.FC = () => {
                   key={request.id}
                   request={request}
                   onAddIntervention={(id) => {
+                    setShowReportForm(false);
+                    setEditingIntervention(null);
                     setSelectedSavId(id);
                     setShowInterventionForm(true);
                   }}
@@ -1223,6 +1228,8 @@ export const SavList: React.FC = () => {
                   key={request.id}
                   request={request}
                   onAddIntervention={(id) => {
+                    setShowReportForm(false);
+                    setEditingIntervention(null);
                     setSelectedSavId(id);
                     setShowInterventionForm(true);
                   }}
@@ -1338,6 +1345,8 @@ export const SavList: React.FC = () => {
                 request={selectedSav}
                 onAddIntervention={(id) => {
                   setShowDetailsModal(false);
+                  setShowReportForm(false);
+                  setEditingIntervention(null);
                   setSelectedSavId(id);
                   setShowInterventionForm(true);
                 }}

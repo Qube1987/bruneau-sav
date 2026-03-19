@@ -292,6 +292,7 @@ export const BillingList: React.FC = () => {
     const sav = requests.find(r => r.id === savRequestId);
     const intervention = sav?.interventions?.find(i => i.id === interventionId);
     if (intervention) {
+      setShowReportForm(false);
       setEditingIntervention(intervention);
       setSelectedSavId(savRequestId);
       setShowInterventionForm(true);
@@ -327,6 +328,7 @@ export const BillingList: React.FC = () => {
       return;
     }
 
+    setShowInterventionForm(false);
     setEditingIntervention(intervention);
     setSelectedSavId(savRequestId);
     setShowReportForm(true);
@@ -476,6 +478,8 @@ export const BillingList: React.FC = () => {
                   <SavCard
                     request={request}
                     onAddIntervention={(id) => {
+                      setShowReportForm(false);
+                      setEditingIntervention(null);
                       setSelectedSavId(id);
                       setShowInterventionForm(true);
                     }}
@@ -505,6 +509,8 @@ export const BillingList: React.FC = () => {
                   key={request.id}
                   request={request}
                   onAddIntervention={(id) => {
+                    setShowReportForm(false);
+                    setEditingIntervention(null);
                     setSelectedSavId(id);
                     setShowInterventionForm(true);
                   }}
