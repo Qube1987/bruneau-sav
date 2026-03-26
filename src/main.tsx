@@ -12,7 +12,11 @@ if (!rootElement) {
 } else {
   try {
     console.log('Initializing React app...');
-    
+
+    // Clear any pre-rendered loading fallback to prevent removeChild errors
+    // caused by browser extensions (e.g. Google Translate) modifying the DOM
+    rootElement.innerHTML = '';
+
     // Check environment variables
     const hasSupabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const hasSupabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;

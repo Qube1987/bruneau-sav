@@ -84,25 +84,33 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
     if (!user?.id) return;
 
     const loadReadState = async () => {
-      // Get the notifications_cleared_at from the users table (matched by email)
-      const { data: userData } = await supabase
-        .from('users')
-        .select('notifications_cleared_at')
-        .eq('email', user.email)
-        .maybeSingle();
+      try {
+        // Get the notifications_cleared_at from the users table (matched by email)
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('notifications_cleared_at')
+          .eq('email', user.email)
+          .maybeSingle();
 
-      if (userData?.notifications_cleared_at) {
-        setNotifClearedAt(userData.notifications_cleared_at);
+        if (!userError && userData?.notifications_cleared_at) {
+          setNotifClearedAt(userData.notifications_cleared_at);
+        }
+      } catch (err) {
+        // Column may not exist yet - silently ignore
       }
 
-      // Get individually dismissed notification IDs
-      const { data: dismissals } = await supabase
-        .from('notification_dismissals')
-        .select('notification_type, notification_id')
-        .eq('user_id', user.id);
+      try {
+        // Get individually dismissed notification IDs
+        const { data: dismissals, error: dismissError } = await supabase
+          .from('notification_dismissals')
+          .select('notification_type, notification_id')
+          .eq('user_id', user.id);
 
-      if (dismissals) {
-        setDismissedIds(new Set(dismissals.map(d => `${d.notification_type}:${d.notification_id}`)));
+        if (!dismissError && dismissals) {
+          setDismissedIds(new Set(dismissals.map(d => `${d.notification_type}:${d.notification_id}`)));
+        }
+      } catch (err) {
+        // Table may not exist yet - silently ignore
       }
     };
 
